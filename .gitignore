@@ -1,0 +1,4 @@
+node_modules/
+coaching.db
+*.db-shm
+*.db-wal

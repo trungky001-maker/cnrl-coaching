@@ -1,0 +1,14 @@
+{
+  "name": "cnrl-coaching-backend",
+  "version": "1.0.0",
+  "description": "CNRL Coaching Conversation Form backend",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "better-sqlite3": "^9.6.0",
+    "express": "^4.19.2"
+  }
+}

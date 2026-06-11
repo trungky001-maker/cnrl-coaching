@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Canadian Natural – Coaching Conversation Form</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy:    #1a6fba;
+    --navy-dk: #155a99;
+    --navy-md: #2280cc;
+    --navy-lt: #e6f0fa;
+    --red:     #000000;
+    --red-lt:  #f0f0f0;
+    --white:   #ffffff;
+    --off-white: #f4f6fb;
+    --border:  #ccd5e8;
+    --muted:   #7a8db5;
+    --text:    #1a2540;
+    --sub:     #4a5e8a;
+    --green:   #1a7a4a;
+    --card:    #ffffff;
+    --dark:    #155a99;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--off-white);
+    color: var(--text);
+    font-family: 'Barlow', sans-serif;
+    font-size: 15px;
+    min-height: 100vh;
+    padding-bottom: 60px;
+  }
+
+  /* ── Header ── */
+  .header {
+    background: #ffffff;
+    border-bottom: 3px solid #000000;
+    padding: 0 28px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 80px;
+  }
+  .header-logo { display: flex; align-items: center; gap: 16px; padding: 12px 0; }
+  .logo-svg-wrap { flex-shrink: 0; }
+  .header-divider { width: 1px; height: 36px; background: #dde2ee; }
+  .header-text { display: flex; flex-direction: column; }
+  .header-title { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 18px; letter-spacing: 0.5px; color: #1a2540; line-height: 1.1; }
+  .header-sub { font-size: 11px; color: #4a5e8a; letter-spacing: 0.5px; margin-top: 2px; }
+  .header-badge { background: #000000; color: #fff; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 11px; letter-spacing: 1.5px; padding: 4px 12px; text-transform: uppercase; border-radius: 2px; }
+
+  /* ── Progress ── */
+  .progress-bar-wrap { background: #f0f2f7; padding: 10px 24px; border-bottom: 1px solid #dde2ee; }
+  .progress-label { display: flex; justify-content: space-between; font-size: 11px; color: #4a5e8a; margin-bottom: 6px; letter-spacing: 0.5px; text-transform: uppercase; }
+  .progress-track { height: 3px; background: rgba(255,255,255,0.15); border-radius: 2px; overflow: hidden; }
+  .progress-fill { height: 100%; background: #000000; border-radius: 2px; transition: width 0.4s ease; width: 0%; }
+
+  /* ── Container ── */
+  .container { max-width: 720px; margin: 0 auto; padding: 24px 16px; }
+
+  /* ── Section ── */
+  .section { margin-bottom: 20px; border-radius: 8px; overflow: hidden; border: 1px solid var(--border); background: var(--card); box-shadow: 0 1px 4px rgba(0,48,135,0.07); }
+  .section-header { background: var(--navy); border-bottom: 1px solid rgba(255,255,255,0.1); padding: 13px 20px; display: flex; align-items: center; gap: 12px; }
+  .section-tag { font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 11px; letter-spacing: 2px; color: var(--navy); background: #ffffff; padding: 2px 8px; text-transform: uppercase; border-radius: 2px; }
+  .section-label { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 15px; letter-spacing: 1px; text-transform: uppercase; color: #ffffff; }
+  .section-body { padding: 20px; display: flex; flex-direction: column; gap: 18px; }
+
+  /* ── Field ── */
+  .field { display: flex; flex-direction: column; gap: 7px; }
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+  label { font-size: 12px; font-weight: 600; letter-spacing: 0.8px; text-transform: uppercase; color: var(--sub); }
+  label .req { color: var(--red); margin-left: 2px; }
+
+  input[type="text"], input[type="date"], select, textarea {
+    background: #fff; border: 1px solid var(--border); color: var(--text);
+    border-radius: 5px; padding: 11px 14px; font-family: 'Barlow', sans-serif;
+    font-size: 14px; outline: none; transition: border-color 0.2s, box-shadow 0.2s;
+    width: 100%; appearance: none; -webkit-appearance: none;
+  }
+  input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(0.3); cursor: pointer; }
+  input:focus, select:focus, textarea:focus { border-color: var(--navy); box-shadow: 0 0 0 3px rgba(0,48,135,0.12); }
+  input.error, select.error, textarea.error { border-color: #c0392b; box-shadow: 0 0 0 3px rgba(192,57,43,0.12); }
+  textarea { resize: vertical; min-height: 110px; line-height: 1.5; }
+  select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%234a5e8a' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 14px center;
+    background-color: #fff; padding-right: 36px;
+  }
+  .error-msg { font-size: 11px; color: #c0392b; letter-spacing: 0.3px; display: none; }
+  .error-msg.visible { display: block; }
+
+  /* ── KPI Grid ── */
+  .kpi-note { font-size: 12px; color: var(--sub); padding: 0 20px 4px; }
+  .kpi-categories { padding: 0 20px 20px; display: flex; flex-direction: column; gap: 16px; }
+  .kpi-group-label { font-family: 'Barlow Condensed', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--navy); margin-bottom: 8px; padding-bottom: 4px; border-bottom: 2px solid var(--navy-lt); }
+  .kpi-items { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 6px; }
+  .kpi-check { display: flex; align-items: center; gap: 9px; cursor: pointer; padding: 7px 10px; border-radius: 5px; border: 1px solid transparent; transition: all 0.15s; user-select: none; }
+  .kpi-check:hover { background: var(--navy-lt); border-color: var(--border); }
+  .kpi-check.selected { background: rgba(0,48,135,0.07); border-color: rgba(0,48,135,0.3); }
+  .kpi-box { width: 18px; height: 18px; border: 2px solid var(--border); border-radius: 3px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+  .kpi-check.selected .kpi-box { background: var(--navy); border-color: var(--navy); }
+  .kpi-box svg { display: none; }
+  .kpi-check.selected .kpi-box svg { display: block; }
+  .kpi-text { font-size: 12.5px; line-height: 1.3; color: var(--sub); transition: color 0.15s; }
+  .kpi-check.selected .kpi-text { color: var(--text); }
+
+  .kpi-other-wrap { display: flex; align-items: center; gap: 9px; padding: 7px 10px; border-radius: 5px; border: 1px solid transparent; transition: all 0.15s; }
+  .kpi-other-wrap.active { background: rgba(0,48,135,0.07); border-color: rgba(0,48,135,0.3); }
+  .kpi-other-wrap .kpi-box { cursor: pointer; }
+  #otherInput { flex: 1; background: #fff; border: 1px solid var(--border); color: var(--text); border-radius: 4px; padding: 5px 10px; font-size: 12.5px; font-family: 'Barlow', sans-serif; outline: none; display: none; }
+  #otherInput:focus { border-color: var(--navy); }
+  .kpi-other-wrap.active #otherInput { display: block; }
+  #kpiError { padding: 0 20px 16px; }
+
+  .kpi-counter { font-size: 12px; color: var(--sub); margin-top: -6px; padding: 0 20px; }
+  .kpi-counter span { color: var(--navy); font-weight: 700; }
+
+  /* ── Submit ── */
+  .submit-wrap { padding: 0 0 8px; display: flex; flex-direction: column; align-items: stretch; gap: 12px; }
+  .btn-submit { background: var(--navy); color: #ffffff; border: none; font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 16px; letter-spacing: 2px; text-transform: uppercase; padding: 16px 32px; border-radius: 6px; cursor: pointer; transition: background 0.2s, transform 0.1s; width: 100%; }
+  .btn-submit:hover { background: var(--navy-md); }
+  .btn-submit:active { transform: scale(0.99); }
+  .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+  .btn-reset { background: transparent; color: var(--sub); border: 1px solid var(--border); font-family: 'Barlow', sans-serif; font-size: 13px; padding: 11px 24px; border-radius: 6px; cursor: pointer; transition: all 0.2s; width: 100%; }
+  .btn-reset:hover { border-color: var(--sub); color: var(--text); }
+
+  /* ── Toast / Success ── */
+  .toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(120px); background: var(--green); color: white; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 14px; letter-spacing: 1px; padding: 14px 28px; border-radius: 6px; z-index: 200; transition: transform 0.4s cubic-bezier(.34,1.56,.64,1); text-align: center; box-shadow: 0 8px 32px rgba(0,0,0,0.2); max-width: 90vw; }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+  .toast.error { background: #c0392b; }
+
+  /* ── Submissions Log ── */
+  .log-section { margin-top: 32px; background: var(--card); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,48,135,0.07); }
+  .log-header { background: var(--navy); border-bottom: 1px solid rgba(255,255,255,0.1); padding: 13px 20px; display: flex; align-items: center; justify-content: space-between; }
+  .log-title { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 14px; letter-spacing: 1px; text-transform: uppercase; color: #fff; }
+  .log-count { font-size: 12px; color: var(--navy); background: #fff; padding: 2px 10px; border-radius: 10px; font-weight: 700; }
+  .log-empty { padding: 28px 20px; text-align: center; color: var(--muted); font-size: 13px; }
+  .log-entry { border-top: 1px solid var(--border); padding: 14px 20px; }
+  .log-entry-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+  .log-num { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 12px; letter-spacing: 1px; color: var(--navy); }
+  .log-ts { font-size: 11px; color: var(--muted); }
+  .log-meta { display: flex; flex-wrap: wrap; gap: 6px; font-size: 12px; color: var(--text); margin-bottom: 6px; }
+  .log-meta span { color: var(--muted); }
+  .log-kpis { font-size: 11.5px; color: var(--muted); line-height: 1.5; }
+  .log-kpis strong { color: var(--text); }
+  .btn-export { margin: 0 20px 16px; background: transparent; border: 1px solid var(--border); color: var(--sub); font-family: 'Barlow', sans-serif; font-size: 12px; padding: 8px 16px; border-radius: 5px; cursor: pointer; transition: all 0.2s; }
+  .btn-export:hover { border-color: var(--navy); color: var(--navy); }
+
+  @media (max-width: 480px) {
+    .field-row { grid-template-columns: 1fr; }
+    .kpi-items { grid-template-columns: 1fr; }
+    .header-title { font-size: 15px; }
+    .header-badge { display: none; }
+    .container { padding: 16px 12px; }
+    .section-body { padding: 16px; }
+    .kpi-categories { padding: 0 16px 16px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-logo">
+    <div class="logo-svg-wrap">
+      <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" height="58" style="display:block;" overflow="visible" viewBox="-36.0309 -26.3515 312.2678 158.109"><g transform="translate(-.003 -2.795)"><defs><path id="a" d="M.003 0h240.206v110.994H.003z"/></defs><clipPath id="b"><use height="100%" width="100%" xlink:href="#a"/></clipPath><path d="M18.6 107.341c-1.621.398-3.426.859-6.332.859C6.578 108.2 0 105.325 0 97.246c0-7.434 5.201-11.133 12.237-11.133 2.172 0 4.283.487 6.333 1.099l-.459 4.621c-1.834-1.01-3.61-1.5-5.568-1.5-4.038 0-6.667 2.935-6.667 6.913 0 4.191 2.968 6.732 7.128 6.732 1.865 0 3.761-.489 5.322-1.102l.274 4.465" fill="#010101" clip-path="url(#b)"/></g><path d="M26.466 101.732c2.082 0 3.396-1.895 3.396-3.764-.703-.027-1.498-.091-2.324-.091-1.865 0-3.334.582-3.334 2.108-.001 1.107.978 1.747 2.262 1.747m3.794 3.308c-.03-.859-.121-1.685-.121-2.51h-.062c-1.253 1.986-2.784 2.875-5.047 2.875-3.151 0-5.966-1.563-5.966-5.016 0-4.865 5.292-5.447 8.229-5.447.887 0 1.867.092 2.569.214-.03-2.17-1.65-2.753-3.639-2.753-1.774 0-3.549.335-5.079 1.19l-.093-3.73c1.959-.795 4.009-1.133 6.363-1.133 4.07 0 7.588 1.742 7.588 6.606v5.938c0 1.256.062 2.51.305 3.766H30.26m5.966-15.941h5.019v2.936h.059c1.101-2.294 3.304-3.304 5.813-3.304 4.345 0 6.088 3.06 6.088 6.366v9.943h-5.506v-7.712c0-2.998-1.041-4.008-2.541-4.008-2.263 0-3.425 1.563-3.425 4.985v6.734h-5.507v-15.94m25.136 12.633c2.081 0 3.395-1.895 3.395-3.764-.703-.027-1.499-.091-2.324-.091-1.867 0-3.336.582-3.336 2.108-.001 1.107.979 1.747 2.265 1.747m3.792 3.308c-.029-.859-.122-1.685-.122-2.51h-.061c-1.254 1.986-2.783 2.875-5.049 2.875-3.149 0-5.965-1.563-5.965-5.016 0-4.865 5.294-5.447 8.231-5.447.884 0 1.865.092 2.568.214-.031-2.17-1.651-2.753-3.641-2.753-1.773 0-3.547.335-5.079 1.19l-.091-3.73c1.958-.795 4.008-1.133 6.363-1.133 4.068 0 7.587 1.742 7.587 6.606v5.938c0 1.256.062 2.51.306 3.766h-5.047m14.734-3.856c1.835 0 3.366-1.745 3.366-4.07 0-2.416-1.346-4.161-3.366-4.161-2.141 0-3.335 1.836-3.335 3.949 0 2.536 1.256 4.282 3.335 4.282m8.872 3.856h-5.08v-2.845h-.06c-.705 1.77-2.936 3.21-5.476 3.21-4.742 0-7.281-3.918-7.281-8.628 0-3.917 2.416-8.047 6.821-8.047 2.203 0 4.068.58 5.477 2.419h.062v-9.058h5.537v22.949m1.114-15.941h5.506v15.941h-5.506zm5.506-2.601h-5.506v-4.04h5.506zm8.234 15.234c2.08 0 3.396-1.895 3.396-3.764-.705-.027-1.5-.091-2.325-.091-1.867 0-3.334.582-3.334 2.108 0 1.107.977 1.747 2.263 1.747m3.794 3.308c-.031-.859-.122-1.685-.122-2.51h-.062c-1.254 1.986-2.784 2.875-5.047 2.875-3.151 0-5.968-1.563-5.968-5.016 0-4.865 5.294-5.447 8.23-5.447.889 0 1.866.092 2.57.214-.031-2.17-1.652-2.753-3.641-2.753-1.774 0-3.549.335-5.078 1.19l-.091-3.73c1.958-.795 4.007-1.133 6.362-1.133 4.07 0 7.587 1.742 7.587 6.606v5.938c0 1.256.062 2.51.307 3.766h-5.047m5.965-15.941h5.017v2.936h.063c1.1-2.294 3.302-3.304 5.813-3.304 4.345 0 6.088 3.06 6.088 6.366v9.943h-5.505v-7.712c0-2.998-1.043-4.008-2.543-4.008-2.263 0-3.426 1.563-3.426 4.985v6.734h-5.506v-15.94m25.544-5.415h7.25l7.221 14.498h.06l-.09-14.498h5.201v21.356h-7.067l-7.465-14.596h-.063l.181 14.596h-5.228m27.779-3.308c2.08 0 3.396-1.895 3.396-3.764-.703-.027-1.498-.091-2.325-.091-1.867 0-3.334.582-3.334 2.108 0 1.107.979 1.747 2.263 1.747m3.792 3.308c-.031-.859-.121-1.685-.121-2.51h-.063c-1.252 1.986-2.783 2.875-5.044 2.875-3.151 0-5.969-1.563-5.969-5.016 0-4.865 5.296-5.447 8.229-5.447.887 0 1.868.092 2.571.214-.03-2.17-1.651-2.753-3.643-2.753-1.772 0-3.546.335-5.076 1.19l-.095-3.73c1.959-.795 4.01-1.133 6.365-1.133 4.069 0 7.586 1.742 7.586 6.606v5.938c0 1.256.063 2.51.307 3.766h-5.047m5.076-15.941h3.243V85.52l5.416-1.685v5.264h3.857v3.854h-3.857v5.874c0 1.929.461 2.906 2.204 2.906.548 0 1.13-.12 1.683-.214l.182 3.58c-1.04.12-2.081.307-3.457.307-4.922 0-6.118-2.17-6.118-5.967v-6.486h-3.152v-3.854m30.535 15.941h-5.018v-2.94h-.059c-1.104 2.294-3.305 3.306-5.813 3.306-4.345 0-6.092-3.059-6.092-6.364V89.1h5.509v7.708c0 2.999 1.04 4.007 2.537 4.007 2.264 0 3.428-1.56 3.428-4.982v-6.732h5.507v15.939m12.515-11.536c-.616-.184-1.226-.184-1.867-.184-2.57 0-4.011 1.862-4.011 4.985v6.734h-5.506v-15.94h5.019v2.936h.06c.948-2.019 2.325-3.304 4.714-3.304.641 0 1.312.094 1.863.186l-.272 4.587m6.543 8.228c2.08 0 3.396-1.895 3.396-3.764-.702-.027-1.5-.091-2.325-.091-1.868 0-3.333.582-3.333 2.108 0 1.107.98 1.747 2.262 1.747m3.794 3.308c-.029-.859-.123-1.685-.123-2.51h-.062c-1.252 1.986-2.785 2.875-5.047 2.875-3.149 0-5.967-1.563-5.967-5.016 0-4.865 5.293-5.447 8.229-5.447.89 0 1.87.092 2.572.214-.03-2.17-1.653-2.753-3.641-2.753-1.774 0-3.547.335-5.079 1.19l-.091-3.73c1.957-.795 4.008-1.133 6.362-1.133 4.07 0 7.591 1.742 7.591 6.606v5.938c0 1.256.06 2.51.3 3.766h-5.044m11.254 0h-5.505V82.092h5.505z" fill="#010101"/><path d="M139.473 57.132c.98-.261 1.783-.594 2.523-1.244.226-1.108-.898-4.293-1.626-6.6 2.256.247 3.665 1.178 5.375.86.748-1 1.042-2.138 1.581-3.279l5.019 5.473c.308.355 1.068.61 1.364-.36l-2.273-11.477c1.83.728 2.466 2.132 4.687 2.239 1.397-2.239 2.409-4.866 3.782-7.588.929 2.518 2.035 4.902 3.345 7.705 2.225-.028 3.154-1.408 5.008-2.072l-3.048 11.387c.265.981 1.033.749 1.353.407l5.163-5.303c.503 1.156.797 2.516 1.508 3.54 1.696.372 3.353-.712 5.367-.887-.804 2.284-2.036 5.429-1.845 6.542.717.672 1.543 1.038 2.477 1.331-3.126 2.135-7.616 6.196-10.044 8.172-.07.607.035 1.087.196 1.556h18.297S170.028.001 124.317.001H85.702c37.145 8.161 53.371 67.53 53.371 67.53h9.771c.324-.558.6-1.091.532-1.887-2.358-2.057-6.848-6.268-9.903-8.512" fill="#2476B9"/><path d="M53.317 33.767c0 17.988 13.804 32.268 31.402 33.766h31.941C80.168 58.45 76.64 20.698 101.125 6.828 96.357 3.602 91.361 1.281 85.701 0c-18.07 1.018-32.384 15.444-32.384 33.767" fill="#010101"/></svg>
+    </div>
+    <div class="header-divider"></div>
+    <div class="header-text">
+      <div class="header-title">Coaching Conversation Form</div>
+      <div class="header-sub">Complete all required fields before submitting</div>
+    </div>
+  </div>
+  <div class="header-badge">Internal</div>
+</div>
+
+<div class="progress-bar-wrap">
+  <div class="progress-label">
+    <span>Form Completion</span>
+    <span id="progressPct">0%</span>
+  </div>
+  <div class="progress-track">
+    <div class="progress-fill" id="progressFill"></div>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- SECTION A -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-tag">A</div>
+      <div class="section-label">Conversation Details</div>
+    </div>
+    <div class="section-body">
+      <div class="field-row">
+        <div class="field">
+          <label for="date">Date of Discussion <span class="req">*</span></label>
+          <input type="date" id="date" />
+          <div class="error-msg" id="dateErr">Date is required</div>
+        </div>
+        <div class="field">
+          <label for="crew">Crew <span class="req">*</span></label>
+          <select id="crew">
+            <option value="">Select crew</option>
+            <option>Crew A</option>
+            <option>Crew B</option>
+            <option>Crew C</option>
+            <option>Crew D</option>
+          </select>
+          <div class="error-msg" id="crewErr">Crew selection is required</div>
+        </div>
+      </div>
+      <div class="field">
+        <label for="leader">Leader Name <span class="req">*</span></label>
+        <input type="text" id="leader" placeholder="Enter leader name" />
+        <div class="error-msg" id="leaderErr">Leader name is required</div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label for="badge">Operator Badge # <span class="req">*</span></label>
+          <input type="text" id="badge" placeholder="e.g. 12345" />
+          <div class="error-msg" id="badgeErr">Badge number is required</div>
+        </div>
+        <div class="field">
+          <label for="opName">Operator First &amp; Last Name <span class="req">*</span></label>
+          <input type="text" id="opName" placeholder="Full name" />
+          <div class="error-msg" id="opNameErr">Operator name is required</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION B -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-tag">B</div>
+      <div class="section-label">KPIs Discussed</div>
+    </div>
+    <p class="kpi-note" style="padding-top:14px;">Select all KPIs discussed during this coaching conversation. <span style="color:var(--red)">*</span></p>
+    <p class="kpi-counter" id="kpiCounter"><span id="kpiCount">0</span> KPI(s) selected</p>
+    <div class="kpi-categories" id="kpiGrid"></div>
+    <div id="kpiError"><div class="error-msg" id="kpiErr">At least one KPI must be selected</div></div>
+  </div>
+
+  <!-- SECTION C -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-tag">C</div>
+      <div class="section-label">Follow-up &amp; Notes</div>
+    </div>
+    <div class="section-body">
+      <div class="field">
+        <label for="followUp">Follow-up Required? <span class="req">*</span></label>
+        <select id="followUp">
+          <option value="">Select</option>
+          <option>Yes</option>
+          <option>No</option>
+        </select>
+        <div class="error-msg" id="followUpErr">Please indicate if follow-up is required</div>
+      </div>
+      <div class="field">
+        <label for="comments">Comments <span class="req">*</span></label>
+        <textarea id="comments" placeholder="Enter coaching notes, observations, or action items…"></textarea>
+        <div class="error-msg" id="commentsErr">Comments are required</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Submit -->
+  <div class="section">
+    <div class="section-body">
+      <div class="submit-wrap">
+        <button class="btn-submit" id="submitBtn" onclick="submitForm()">Submit Conversation</button>
+        <button class="btn-reset" onclick="resetForm()">Reset Form</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Submissions Log -->
+  <div class="log-section" id="logSection">
+    <div class="log-header">
+      <div class="log-title">Submitted Records</div>
+      <div class="log-count" id="logCount">0</div>
+    </div>
+    <div id="logBody">
+      <div class="log-empty">No submissions yet. Completed forms will appear here.</div>
+    </div>
+    <button class="btn-export" onclick="exportCSV()" id="exportBtn" style="display:none;">↓ Export as CSV</button>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const KPI_CATEGORIES = {
+  Production: [
+    "Production - Avg First Load Time","Production - Avg Last Load Time","Production - Availability (Shovels)",
+    "Production - Availability (Trucks)","Production - % of NOH (Shovels)","Production - % of NOH (Trucks)",
+    "Production - Total Ktonnes by Shift","Production - Truck Wait at Shovel (min/cycle)","Production - Shovel Wait (min/cycle)",
+    "Production - Shovel Wait - Ore (min/cycle)","Production - Shovel Wait - Waste (min/cycle)","Production - Queue vs Hang (%)",
+    "Production - Truck Wait at Dump (min/cycle)","Production - Truck Wait at Crusher (%)","Production - Truck Dump Time at Crusher (%)",
+  ],
+  Cycle: [
+    "Cycle - Cycle Time (loads/min)","Cycle - Cycle Time Waste Dumps (min)","Cycle - Cycle Time Crusher (avg/min)",
+    "Cycle - Avg Stopped Empty Time","Cycle - Stopped Empty Count per Shift","Cycle - Avg Stopped Loaded Time",
+    "Cycle - Stopped Loaded Count per Shift","Cycle - First Hour Total Moved","Cycle - Last Hour Total Moved",
+  ],
+  Assignment: [
+    "Assignment - Truck on Alternative Route","Assignment - No Route to Shovel","Assignment - Ore Dumped at Waste Dump",
+    "Assignment - Waste Dumped at Stockpile","Assignment - Truck and Shovel Wait","Assignment - Truck and Shovel Wait (Waste)",
+    "Assignment - Truck and Shovel Wait (Ore)","Assignment - Empty Truck Assignments",
+  ],
+  Loading: [
+    "Loading - Tonnes per Effective Hour","Loading - Time per Pass","Loading - Tonnes per Pass",
+    "Loading - Loading Time per Load (CAT 797)","Loading - Loading Time per Load (CAT 793)","Loading - Loading Time per Load (KOM 930)",
+  ],
+  Hauling: [
+    "Hauling - Avg Wait Time (Waste)","Hauling - Avg Dump Time (Waste)","Hauling - Avg Spot Time (Double)",
+    "Hauling - Avg Spot Time (Single)","Hauling - Avg Stopped Empty","Hauling - Avg Stopped Full",
+  ],
+  Payload: [
+    "Payload - Avg Payload (CAT 797)","Payload - Avg Payload (CAT 793)","Payload - Avg Payload (KOM 930)",
+    "Payload - Overloads per Shift","Payload - Underloads per Shift","Payload - Percentage of Loads in DSL",
+  ],
+  Delay: [
+    "Delay - Hot Change","Delay - Shovel Move","Delay - Face Prep","Delay - Change Operator","Delay - Shift Change",
+    "Delay - Hot Relief","Delay - Equipment Stuck","Delay - Equipment Check","Delay - Fuel / Lube","Delay - Personal",
+  ],
+  Standby: [
+    "Standby - Release to Ops","Standby - No Sub Status - Avg min per Event (mm:ss)",
+  ],
+};
+
+const selectedKPIs = new Set();
+let otherChecked = false;
+
+// ── Build KPI grid ─────────────────────────────────────────────────────────────
+function buildKPIGrid() {
+  const grid = document.getElementById('kpiGrid');
+  grid.innerHTML = '';
+  for (const [cat, items] of Object.entries(KPI_CATEGORIES)) {
+    const group = document.createElement('div');
+    group.innerHTML = `<div class="kpi-group-label">${cat}</div><div class="kpi-items" id="cat_${cat}"></div>`;
+    grid.appendChild(group);
+    const row = document.getElementById('cat_' + cat);
+    items.forEach(kpi => {
+      const el = document.createElement('div');
+      el.className = 'kpi-check';
+      el.setAttribute('data-kpi', kpi);
+      el.innerHTML = `
+        <span class="kpi-box">
+          <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
+            <path d="M1 4l3 3 5-6" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </span>
+        <span class="kpi-text">${kpi.replace(/^[^-]+ - /, '')}</span>`;
+      el.addEventListener('click', () => toggleKPI(el, kpi));
+      row.appendChild(el);
+    });
+  }
+  const otherGroup = document.createElement('div');
+  otherGroup.innerHTML = `
+    <div class="kpi-group-label">Other</div>
+    <div class="kpi-items">
+      <div class="kpi-other-wrap" id="otherWrap">
+        <span class="kpi-box" id="otherBox" onclick="toggleOther()">
+          <svg width="10" height="8" viewBox="0 0 10 8" fill="none" id="otherCheck" style="display:none">
+            <path d="M1 4l3 3 5-6" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </span>
+        <span class="kpi-text" onclick="toggleOther()">Other:</span>
+        <input type="text" id="otherInput" placeholder="Specify KPI…" oninput="updateProgress()" />
+      </div>
+    </div>`;
+  grid.appendChild(otherGroup);
+}
+
+function toggleKPI(el, kpi) {
+  if (selectedKPIs.has(kpi)) { selectedKPIs.delete(kpi); el.classList.remove('selected'); }
+  else { selectedKPIs.add(kpi); el.classList.add('selected'); }
+  document.getElementById('kpiCount').textContent = selectedKPIs.size + (otherChecked ? 1 : 0);
+  document.getElementById('kpiErr').classList.remove('visible');
+  updateProgress();
+}
+
+function toggleOther() {
+  otherChecked = !otherChecked;
+  const wrap = document.getElementById('otherWrap');
+  const box  = document.getElementById('otherBox');
+  const chk  = document.getElementById('otherCheck');
+  const inp  = document.getElementById('otherInput');
+  if (otherChecked) {
+    wrap.classList.add('active'); box.style.background = 'var(--navy)'; box.style.borderColor = 'var(--navy)';
+    chk.style.display = 'block'; inp.style.display = 'block'; inp.focus();
+  } else {
+    wrap.classList.remove('active'); box.style.background = ''; box.style.borderColor = '';
+    chk.style.display = 'none'; inp.style.display = 'none'; inp.value = '';
+  }
+  document.getElementById('kpiCount').textContent = selectedKPIs.size + (otherChecked ? 1 : 0);
+  document.getElementById('kpiErr').classList.remove('visible');
+  updateProgress();
+}
+
+// ── Validation ─────────────────────────────────────────────────────────────────
+function setError(id, errId, show) {
+  const el  = document.getElementById(id);
+  const err = document.getElementById(errId);
+  if (show) { el.classList.add('error'); err.classList.add('visible'); }
+  else      { el.classList.remove('error'); err.classList.remove('visible'); }
+}
+
+function validateAll() {
+  let ok = true;
+  if (!document.getElementById('date').value)          { setError('date','dateErr',true);     ok=false; } else setError('date','dateErr',false);
+  if (!document.getElementById('crew').value)          { setError('crew','crewErr',true);     ok=false; } else setError('crew','crewErr',false);
+  if (!document.getElementById('leader').value.trim()) { setError('leader','leaderErr',true); ok=false; } else setError('leader','leaderErr',false);
+  if (!document.getElementById('badge').value.trim())  { setError('badge','badgeErr',true);   ok=false; } else setError('badge','badgeErr',false);
+  if (!document.getElementById('opName').value.trim()) { setError('opName','opNameErr',true); ok=false; } else setError('opName','opNameErr',false);
+  const kpiTotal = selectedKPIs.size + (otherChecked ? 1 : 0);
+  if (kpiTotal === 0) { document.getElementById('kpiErr').classList.add('visible'); ok=false; }
+  else                { document.getElementById('kpiErr').classList.remove('visible'); }
+  if (!document.getElementById('followUp').value)          { setError('followUp','followUpErr',true);   ok=false; } else setError('followUp','followUpErr',false);
+  if (!document.getElementById('comments').value.trim())   { setError('comments','commentsErr',true);   ok=false; } else setError('comments','commentsErr',false);
+  return ok;
+}
+
+function updateProgress() {
+  const fields = [
+    document.getElementById('date').value,
+    document.getElementById('crew').value,
+    document.getElementById('leader').value.trim(),
+    document.getElementById('badge').value.trim(),
+    document.getElementById('opName').value.trim(),
+    (selectedKPIs.size + (otherChecked ? 1 : 0)) > 0 ? 'yes' : '',
+    document.getElementById('followUp').value,
+    document.getElementById('comments').value.trim(),
+  ];
+  const pct = Math.round((fields.filter(Boolean).length / fields.length) * 100);
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressPct').textContent  = pct + '%';
+}
+
+['date','crew','leader','badge','opName','followUp','comments'].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) { el.addEventListener('input', updateProgress); el.addEventListener('change', updateProgress); }
+});
+
+// ── Submit (POST to API) ───────────────────────────────────────────────────────
+async function submitForm() {
+  if (!validateAll()) {
+    const firstErr = document.querySelector('.error, .error-msg.visible');
+    if (firstErr) firstErr.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    return;
+  }
+
+  let kpis = [...selectedKPIs];
+  if (otherChecked) {
+    const ov = document.getElementById('otherInput').value.trim();
+    kpis.push(ov ? 'Other: ' + ov : 'Other');
+  }
+
+  const payload = {
+    date:     document.getElementById('date').value,
+    crew:     document.getElementById('crew').value,
+    leader:   document.getElementById('leader').value.trim(),
+    badge:    document.getElementById('badge').value.trim(),
+    opName:   document.getElementById('opName').value.trim(),
+    kpis,
+    followUp: document.getElementById('followUp').value,
+    comments: document.getElementById('comments').value.trim(),
+  };
+
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true;
+  btn.textContent = 'Saving…';
+
+  try {
+    const res = await fetch('/api/submissions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) throw new Error(await res.text());
+    const saved = await res.json();
+    showToast(`Submission #${saved.id} saved successfully!`);
+    resetForm();
+    loadLog();
+  } catch (err) {
+    showToast('Save failed — ' + err.message, true);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Submit Conversation';
+  }
+}
+
+function resetForm() {
+  ['date','leader','badge','opName','comments'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('crew').value = '';
+  document.getElementById('followUp').value = '';
+  selectedKPIs.clear();
+  document.querySelectorAll('.kpi-check.selected').forEach(el => el.classList.remove('selected'));
+  if (otherChecked) toggleOther();
+  document.getElementById('kpiCount').textContent = '0';
+  ['date','crew','leader','badge','opName','followUp','comments'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.remove('error');
+  });
+  document.querySelectorAll('.error-msg.visible').forEach(el => el.classList.remove('visible'));
+  updateProgress();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ── Load and render log (GET from API) ────────────────────────────────────────
+async function loadLog() {
+  try {
+    const res = await fetch('/api/submissions');
+    const records = await res.json();
+    renderLog(records);
+  } catch {
+    // server not reachable — log stays empty
+  }
+}
+
+function renderLog(records) {
+  const body      = document.getElementById('logBody');
+  const count     = document.getElementById('logCount');
+  const exportBtn = document.getElementById('exportBtn');
+  count.textContent = records.length;
+  exportBtn.style.display = records.length ? 'block' : 'none';
+  if (!records.length) {
+    body.innerHTML = '<div class="log-empty">No submissions yet. Completed forms will appear here.</div>';
+    return;
+  }
+  body.innerHTML = records.map(r => `
+    <div class="log-entry">
+      <div class="log-entry-top">
+        <div class="log-num">SUBMISSION #${r.id}</div>
+        <div class="log-ts">${r.timestamp}</div>
+      </div>
+      <div class="log-meta">
+        <span>Date:</span> ${r.date} &nbsp;
+        <span>Crew:</span> ${r.crew} &nbsp;
+        <span>Leader:</span> ${r.leader} &nbsp;
+        <span>Badge:</span> ${r.badge} &nbsp;
+        <span>Operator:</span> ${r.opName} &nbsp;
+        <span>Follow-up:</span> ${r.followUp}
+      </div>
+      <div class="log-kpis"><strong>KPIs (${r.kpis.length}):</strong> ${r.kpis.join(', ')}</div>
+      ${r.comments ? `<div class="log-kpis" style="margin-top:4px"><strong>Comments:</strong> ${r.comments}</div>` : ''}
+    </div>
+  `).join('');
+}
+
+// ── Export (redirect to API) ───────────────────────────────────────────────────
+function exportCSV() {
+  window.location.href = '/api/submissions/export.csv';
+}
+
+// ── Toast ──────────────────────────────────────────────────────────────────────
+function showToast(msg, isError = false) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.toggle('error', isError);
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+// ── Init ───────────────────────────────────────────────────────────────────────
+buildKPIGrid();
+updateProgress();
+loadLog();
+</script>
+</body>
+</html>
