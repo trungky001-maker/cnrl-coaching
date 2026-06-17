@@ -153,6 +153,10 @@
   .log-kpis strong { color: var(--text); }
   .btn-export { margin: 0 20px 16px; background: transparent; border: 1px solid var(--border); color: var(--sub); font-family: 'Barlow', sans-serif; font-size: 12px; padding: 8px 16px; border-radius: 5px; cursor: pointer; transition: all 0.2s; }
   .btn-export:hover { border-color: var(--navy); color: var(--navy); }
+  .crew-filter { display: flex; gap: 6px; padding: 12px 20px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+  .crew-btn { background: transparent; border: 1px solid var(--border); color: var(--sub); font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 12px; letter-spacing: 1px; text-transform: uppercase; padding: 5px 14px; border-radius: 4px; cursor: pointer; transition: all 0.15s; }
+  .crew-btn:hover { border-color: var(--navy); color: var(--navy); }
+  .crew-btn.active { background: var(--navy); border-color: var(--navy); color: #fff; }
 
   @media (max-width: 480px) {
     .field-row { grid-template-columns: 1fr; }
@@ -294,6 +298,13 @@
     <div class="log-header">
       <div class="log-title">Submitted Records</div>
       <div class="log-count" id="logCount">0</div>
+    </div>
+    <div class="crew-filter" id="crewFilter" style="display:none;">
+      <button class="crew-btn active" onclick="filterCrew('All', this)">All</button>
+      <button class="crew-btn" onclick="filterCrew('Crew A', this)">Crew A</button>
+      <button class="crew-btn" onclick="filterCrew('Crew B', this)">Crew B</button>
+      <button class="crew-btn" onclick="filterCrew('Crew C', this)">Crew C</button>
+      <button class="crew-btn" onclick="filterCrew('Crew D', this)">Crew D</button>
     </div>
     <div id="logBody">
       <div class="log-empty">No submissions yet. Completed forms will appear here.</div>
@@ -525,14 +536,29 @@ function resetForm() {
 }
 
 // ── Load and render log (GET from API) ────────────────────────────────────────
+let allRecords = [];
+let activeCrew = 'All';
+
 async function loadLog() {
   try {
     const res = await fetch('/api/submissions');
-    const records = await res.json();
-    renderLog(records);
+    allRecords = await res.json();
+    document.getElementById('crewFilter').style.display = allRecords.length ? 'flex' : 'none';
+    renderLog(filteredRecords());
   } catch {
     // server not reachable — log stays empty
   }
+}
+
+function filteredRecords() {
+  return activeCrew === 'All' ? allRecords : allRecords.filter(r => r.crew === activeCrew);
+}
+
+function filterCrew(crew, btn) {
+  activeCrew = crew;
+  document.querySelectorAll('.crew-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderLog(filteredRecords());
 }
 
 function renderLog(records) {
@@ -542,7 +568,7 @@ function renderLog(records) {
   count.textContent = records.length;
   exportBtn.style.display = records.length ? 'block' : 'none';
   if (!records.length) {
-    body.innerHTML = '<div class="log-empty">No submissions yet. Completed forms will appear here.</div>';
+    body.innerHTML = `<div class="log-empty">${activeCrew === 'All' ? 'No submissions yet.' : `No submissions for ${activeCrew}.`}</div>`;
     return;
   }
   body.innerHTML = records.map(r => `
@@ -565,9 +591,20 @@ function renderLog(records) {
   `).join('');
 }
 
-// ── Export (redirect to API) ───────────────────────────────────────────────────
+// ── Export (filtered by active crew) ──────────────────────────────────────────
 function exportCSV() {
-  window.location.href = '/api/submissions/export.csv';
+  const records = filteredRecords();
+  if (!records.length) return;
+  const headers = ['Submission #','Timestamp','Date of Discussion','Crew','Leader Name','Operator Badge #','Operator Name','KPIs Discussed','Follow-up Required','Comments'];
+  const esc = v => `"${String(v ?? '').replace(/"/g,'""')}"`;
+  const rows = records.map(r => [r.id, r.timestamp, r.date, r.crew, r.leader, r.badge, r.opName, r.kpis.join('; '), r.followUp, r.comments].map(esc).join(','));
+  const csv  = [headers.map(esc).join(','), ...rows].join('\r\n');
+  const crew = activeCrew === 'All' ? 'all' : activeCrew.replace(' ', '_').toLowerCase();
+  const a    = Object.assign(document.createElement('a'), {
+    href:     URL.createObjectURL(new Blob([csv], { type: 'text/csv' })),
+    download: `cnrl_coaching_${crew}.csv`,
+  });
+  a.click();
 }
 
 // ── Log toggle ─────────────────────────────────────────────────────────────────
