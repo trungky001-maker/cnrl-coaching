@@ -154,6 +154,23 @@
   .btn-export { margin: 0 20px 16px; background: transparent; border: 1px solid var(--border); color: var(--sub); font-family: 'Barlow', sans-serif; font-size: 12px; padding: 8px 16px; border-radius: 5px; cursor: pointer; transition: all 0.2s; }
   .btn-export:hover { border-color: var(--navy); color: var(--navy); }
   .crew-filter { display: flex; gap: 6px; padding: 12px 20px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+  /* ── Password modal ── */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(10,20,50,0.55); z-index: 300; display: flex; align-items: center; justify-content: center; }
+  .modal-overlay.hidden { display: none; }
+  .modal-box { background: #fff; border-radius: 10px; padding: 32px 28px; width: 340px; max-width: 90vw; box-shadow: 0 16px 48px rgba(0,0,0,0.22); display: flex; flex-direction: column; gap: 16px; }
+  .modal-title { font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 17px; letter-spacing: 1px; text-transform: uppercase; color: var(--text); }
+  .modal-sub { font-size: 13px; color: var(--sub); margin-top: -8px; }
+  .modal-input { border: 1px solid var(--border); border-radius: 5px; padding: 11px 14px; font-family: 'Barlow', sans-serif; font-size: 14px; outline: none; width: 100%; transition: border-color 0.2s, box-shadow 0.2s; }
+  .modal-input:focus { border-color: var(--navy); box-shadow: 0 0 0 3px rgba(26,111,186,0.12); }
+  .modal-input.shake { animation: shake 0.35s ease; border-color: #c0392b; }
+  .modal-error { font-size: 12px; color: #c0392b; display: none; }
+  .modal-error.visible { display: block; }
+  .modal-actions { display: flex; gap: 10px; }
+  .btn-modal-ok { flex: 1; background: var(--navy); color: #fff; border: none; font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 15px; letter-spacing: 1.5px; text-transform: uppercase; padding: 12px; border-radius: 6px; cursor: pointer; }
+  .btn-modal-ok:hover { background: var(--navy-md); }
+  .btn-modal-cancel { background: transparent; border: 1px solid var(--border); color: var(--sub); font-family: 'Barlow', sans-serif; font-size: 13px; padding: 12px 18px; border-radius: 6px; cursor: pointer; }
+  .btn-modal-cancel:hover { border-color: var(--sub); }
+  @keyframes shake { 0%,100%{transform:translateX(0)} 20%,60%{transform:translateX(-6px)} 40%,80%{transform:translateX(6px)} }
   .crew-btn { background: transparent; border: 1px solid var(--border); color: var(--sub); font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 12px; letter-spacing: 1px; text-transform: uppercase; padding: 5px 14px; border-radius: 4px; cursor: pointer; transition: all 0.15s; }
   .crew-btn:hover { border-color: var(--navy); color: var(--navy); }
   .crew-btn.active { background: var(--navy); border-color: var(--navy); color: #fff; }
@@ -312,6 +329,21 @@
     <button class="btn-export" onclick="exportCSV()" id="exportBtn" style="display:none;">↓ Export as CSV</button>
   </div>
 
+</div>
+
+<!-- ── Password modal ── -->
+<div class="modal-overlay hidden" id="pwModal">
+  <div class="modal-box">
+    <div class="modal-title">Access Required</div>
+    <div class="modal-sub">Enter the password to view submitted records.</div>
+    <input class="modal-input" type="password" id="pwInput" placeholder="Password"
+      onkeydown="if(event.key==='Enter')checkPassword()" />
+    <div class="modal-error" id="pwError">Incorrect password. Please try again.</div>
+    <div class="modal-actions">
+      <button class="btn-modal-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn-modal-ok" onclick="checkPassword()">Unlock</button>
+    </div>
+  </div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -607,15 +639,53 @@ function exportCSV() {
   a.click();
 }
 
-// ── Log toggle ─────────────────────────────────────────────────────────────────
+// ── Password & log toggle ──────────────────────────────────────────────────────
+const LOG_PASSWORD = 'CNRL2025';
+
 function toggleLog() {
   const section = document.getElementById('logSection');
-  const btn     = document.getElementById('logToggleBtn');
-  const hidden  = section.style.display === 'none';
-  section.style.display = hidden ? 'block' : 'none';
-  btn.textContent = hidden ? 'Hide Submitted Records' : 'Show Submitted Records';
-  if (hidden) loadLog();
+  if (section.style.display !== 'none') {
+    section.style.display = 'none';
+    document.getElementById('logToggleBtn').textContent = 'Show Submitted Records';
+  } else {
+    openModal();
+  }
 }
+
+function openModal() {
+  document.getElementById('pwInput').value = '';
+  document.getElementById('pwError').classList.remove('visible');
+  document.getElementById('pwInput').classList.remove('shake');
+  document.getElementById('pwModal').classList.remove('hidden');
+  setTimeout(() => document.getElementById('pwInput').focus(), 50);
+}
+
+function closeModal() {
+  document.getElementById('pwModal').classList.add('hidden');
+}
+
+function checkPassword() {
+  const val = document.getElementById('pwInput').value;
+  if (val === LOG_PASSWORD) {
+    closeModal();
+    document.getElementById('logSection').style.display = 'block';
+    document.getElementById('logToggleBtn').textContent = 'Hide Submitted Records';
+    loadLog();
+  } else {
+    const inp = document.getElementById('pwInput');
+    inp.classList.remove('shake');
+    void inp.offsetWidth; // restart animation
+    inp.classList.add('shake');
+    document.getElementById('pwError').classList.add('visible');
+    inp.value = '';
+    inp.focus();
+  }
+}
+
+// Close modal on backdrop click
+document.addEventListener('click', e => {
+  if (e.target.id === 'pwModal') closeModal();
+});
 
 // ── Toast ──────────────────────────────────────────────────────────────────────
 function showToast(msg, isError = false) {
