@@ -82,6 +82,16 @@ app.get('/api/submissions/export.csv', (_req, res) => {
   res.send(csv);
 });
 
+// DELETE /api/submissions  — clear all records
+app.delete('/api/submissions', (req, res) => {
+  const secret = req.headers['x-admin-secret'];
+  if (secret !== process.env.ADMIN_SECRET) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  db.exec('DELETE FROM submissions');
+  res.json({ cleared: true });
+});
+
 // ── Helpers ────────────────────────────────────────────────────────────────────
 function toRecord(r) {
   return {
