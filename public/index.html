@@ -175,6 +175,11 @@
   .crew-btn:hover { border-color: var(--navy); color: var(--navy); }
   .crew-btn.active { background: var(--navy); border-color: var(--navy); color: #fff; }
 
+  .role-selector { display: flex; gap: 10px; padding: 16px 20px 0; }
+  .role-btn { flex: 1; padding: 13px 16px; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 14px; letter-spacing: 1px; text-transform: uppercase; border: 2px solid var(--border); background: #fff; color: var(--sub); border-radius: 6px; cursor: pointer; transition: all 0.15s; }
+  .role-btn:hover { border-color: var(--navy); color: var(--navy); background: var(--navy-lt); }
+  .role-btn.active { background: var(--navy); border-color: var(--navy); color: #fff; }
+
   @media (max-width: 480px) {
     .field-row { grid-template-columns: 1fr; }
     .kpi-items { grid-template-columns: 1fr; }
@@ -183,6 +188,7 @@
     .container { padding: 16px 12px; }
     .section-body { padding: 16px; }
     .kpi-categories { padding: 0 16px 16px; }
+    .role-selector { padding: 12px 16px 0; }
   }
 </style>
 </head>
@@ -265,7 +271,12 @@
       <div class="section-tag">B</div>
       <div class="section-label">KPIs Discussed</div>
     </div>
-    <p class="kpi-note" style="padding-top:14px;">Select all KPIs discussed during this coaching conversation. <span style="color:var(--red)">*</span></p>
+    <div class="role-selector">
+      <button type="button" class="role-btn" onclick="selectRole('Shovel Operator', this)">Shovel Operator</button>
+      <button type="button" class="role-btn" onclick="selectRole('Truck Operator', this)">Truck Operator</button>
+    </div>
+    <div style="padding:4px 20px 0;"><div class="error-msg" id="roleErr">Please select an operator role</div></div>
+    <p class="kpi-note" style="padding-top:12px;">Select all KPIs discussed during this coaching conversation. <span style="color:var(--red)">*</span></p>
     <p class="kpi-counter" id="kpiCounter"><span id="kpiCount">0</span> KPI(s) selected</p>
     <div class="kpi-categories" id="kpiGrid"></div>
     <div id="kpiError"><div class="error-msg" id="kpiErr">At least one KPI must be selected</div></div>
@@ -378,16 +389,21 @@ const KPI_CATEGORIES = {
 
 const selectedKPIs = new Set();
 let otherChecked = false;
+let selectedRole = null;
 
 // ── Build KPI grid ─────────────────────────────────────────────────────────────
 function buildKPIGrid() {
   const grid = document.getElementById('kpiGrid');
   grid.innerHTML = '';
   for (const [cat, items] of Object.entries(KPI_CATEGORIES)) {
-    const group = document.createElement('div');
-    group.innerHTML = `<div class="kpi-group-label">${cat}</div><div class="kpi-items" id="cat_${cat}"></div>`;
+    const isRole = cat === 'Shovel Operator' || cat === 'Truck Operator';
+    const catId  = cat.replace(/\s+/g, '_');
+    const group  = document.createElement('div');
+    group.setAttribute('data-cat', cat);
+    if (isRole) group.style.display = 'none';
+    group.innerHTML = `<div class="kpi-group-label">${cat}</div><div class="kpi-items" id="cat_${catId}"></div>`;
     grid.appendChild(group);
-    const row = document.getElementById('cat_' + cat);
+    const row = document.getElementById('cat_' + catId);
     items.forEach(kpi => {
       const el = document.createElement('div');
       el.className = 'kpi-check';
@@ -446,6 +462,25 @@ function toggleOther() {
   updateProgress();
 }
 
+function selectRole(role, btn) {
+  selectedRole = role;
+  document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('roleErr').classList.remove('visible');
+  const other = role === 'Shovel Operator' ? 'Truck Operator' : 'Shovel Operator';
+  [...selectedKPIs].filter(k => k.startsWith(other + ' - ')).forEach(k => selectedKPIs.delete(k));
+  document.querySelectorAll(`#kpiGrid > [data-cat]`).forEach(g => {
+    const c = g.getAttribute('data-cat');
+    if (c === 'Shovel Operator' || c === 'Truck Operator') {
+      if (c !== role) { g.querySelectorAll('.kpi-check.selected').forEach(el => el.classList.remove('selected')); g.style.display = 'none'; }
+      else g.style.display = '';
+    }
+  });
+  document.getElementById('kpiCount').textContent = selectedKPIs.size + (otherChecked ? 1 : 0);
+  document.getElementById('kpiErr').classList.remove('visible');
+  updateProgress();
+}
+
 // ── Validation ─────────────────────────────────────────────────────────────────
 function setError(id, errId, show) {
   const el  = document.getElementById(id);
@@ -456,6 +491,8 @@ function setError(id, errId, show) {
 
 function validateAll() {
   let ok = true;
+  if (!selectedRole) { document.getElementById('roleErr').classList.add('visible'); ok=false; }
+  else               { document.getElementById('roleErr').classList.remove('visible'); }
   if (!document.getElementById('date').value)          { setError('date','dateErr',true);     ok=false; } else setError('date','dateErr',false);
   if (!document.getElementById('crew').value)          { setError('crew','crewErr',true);     ok=false; } else setError('crew','crewErr',false);
   if (!document.getElementById('leader').value.trim()) { setError('leader','leaderErr',true); ok=false; } else setError('leader','leaderErr',false);
@@ -476,6 +513,7 @@ function updateProgress() {
     document.getElementById('leader').value.trim(),
     document.getElementById('badge').value.trim(),
     document.getElementById('opName').value.trim(),
+    selectedRole ? 'yes' : '',
     (selectedKPIs.size + (otherChecked ? 1 : 0)) > 0 ? 'yes' : '',
     document.getElementById('followUp').value,
     document.getElementById('comments').value.trim(),
@@ -546,6 +584,12 @@ function resetForm() {
   document.querySelectorAll('.kpi-check.selected').forEach(el => el.classList.remove('selected'));
   if (otherChecked) toggleOther();
   document.getElementById('kpiCount').textContent = '0';
+  selectedRole = null;
+  document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('#kpiGrid > [data-cat]').forEach(g => {
+    const c = g.getAttribute('data-cat');
+    if (c === 'Shovel Operator' || c === 'Truck Operator') g.style.display = 'none';
+  });
   ['date','crew','leader','badge','opName','followUp','comments'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.classList.remove('error');
