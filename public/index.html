@@ -654,6 +654,7 @@ function renderLog(records) {
         <span>Leader:</span> ${r.leader} &nbsp;
         <span>Badge:</span> ${r.badge} &nbsp;
         <span>Operator:</span> ${r.opName} &nbsp;
+        <span>Role:</span> ${roleLabel(r.kpis)} &nbsp;
         <span>Follow-up:</span> ${r.followUp}
       </div>
       <div class="log-kpis"><strong>KPIs (${r.kpis.length}):</strong> ${r.kpis.join(', ')}</div>
@@ -667,6 +668,11 @@ function roleRank(r) {
   if (r.kpis.some(k => k.startsWith('Shovel Operator - '))) return 0;
   if (r.kpis.some(k => k.startsWith('Truck Operator - '))) return 1;
   return 2;
+}
+function roleLabel(kpis) {
+  if (kpis.some(k => k.startsWith('Shovel Operator - '))) return 'Shovel Operator';
+  if (kpis.some(k => k.startsWith('Truck Operator - '))) return 'Truck Operator';
+  return '—';
 }
 function sortForExport(records) {
   const crew = { 'Crew A': 0, 'Crew B': 1, 'Crew C': 2, 'Crew D': 3 };
