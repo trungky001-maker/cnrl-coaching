@@ -350,34 +350,35 @@
 
 <script>
 const KPI_CATEGORIES = {
-  Production: [
-    "Production - Avg First Load Time","Production - Avg Last Load Time","Production - Availability (Shovels)",
-    "Production - Availability (Trucks)","Production - % of NOH (Shovels)","Production - % of NOH (Trucks)",
-    "Production - Total Ktonnes by Shift","Production - Truck Wait at Shovel (min/cycle)","Production - Shovel Wait (min/cycle)",
-    "Production - Shovel Wait - Ore (min/cycle)","Production - Shovel Wait - Waste (min/cycle)","Production - Queue vs Hang (%)",
-    "Production - Truck Wait at Dump (min/cycle)","Production - Truck Wait at Crusher (%)","Production - Truck Dump Time at Crusher (%)",
+  "Shovel Operator": [
+    "Shovel Operator - Avg. First Load Time","Shovel Operator - Avg. Last Load Time",
+    "Shovel Operator - % of Loads in DSL","Shovel Operator - Tonnes per Effective Hour",
+    "Shovel Operator - Time per Pass","Shovel Operator - Tonnes per Pass",
+    "Shovel Operator - Overloads per Shift","Shovel Operator - Underloads per Shift",
+    "Shovel Operator - Avg Payload (CAT 797)","Shovel Operator - Avg Payload (KOM 930)",
+    "Shovel Operator - Avg Payload (CAT 793)",
+    "Shovel Operator - Loading Time per Load (CAT 797)",
+    "Shovel Operator - Loading Time per Load (KOM 930)",
+    "Shovel Operator - Loading Time per Load (CAT 793)",
   ],
-  Cycle: [
-    "Cycle - Cycle Time (loads/min)","Cycle - Cycle Time Waste Dumps (min)","Cycle - Cycle Time Crusher (avg/min)",
-    "Cycle - Avg Stopped Empty Time","Cycle - Stopped Empty Count per Shift","Cycle - Avg Stopped Loaded Time",
-    "Cycle - Stopped Loaded Count per Shift","Cycle - First Hour Total Moved","Cycle - Last Hour Total Moved",
+  "Truck Operator": [
+    "Truck Operator - Avg. Loads Dumped First Hour","Truck Operator - Avg. Loads Dumped Last Hour",
+    "Truck Operator - Avg. Wait Time (Waste)","Truck Operator - Avg. Dump Time (Waste)",
+    "Truck Operator - Avg. Spotting Time (Double)","Truck Operator - Avg. Spotting Time (Single)",
+    "Truck Operator - Avg. Stopped Empty","Truck Operator - Avg. Stopped Full",
   ],
-  Assignment: [
-    "Assignment - Truck on Alternative Route","Assignment - No Route to Shovel","Assignment - Ore Dumped at Waste Dump",
-    "Assignment - Waste Dumped at Stockpile","Assignment - Truck and Shovel Wait","Assignment - Truck and Shovel Wait (Waste)",
-    "Assignment - Truck and Shovel Wait (Ore)","Assignment - Empty Truck Assignments",
-  ],
-  Loading: [
-    "Loading - Tonnes per Effective Hour","Loading - Time per Pass","Loading - Tonnes per Pass",
-    "Loading - Loading Time per Load (CAT 797)","Loading - Loading Time per Load (CAT 793)","Loading - Loading Time per Load (KOM 930)",
-  ],
-  Hauling: [
-    "Hauling - Avg Wait Time (Waste)","Hauling - Avg Dump Time (Waste)","Hauling - Avg Spot Time (Double)",
-    "Hauling - Avg Spot Time (Single)","Hauling - Avg Stopped Empty","Hauling - Avg Stopped Full",
-  ],
-  Payload: [
-    "Payload - Avg Payload (CAT 797)","Payload - Avg Payload (CAT 793)","Payload - Avg Payload (KOM 930)",
-    "Payload - Overloads per Shift","Payload - Underloads per Shift","Payload - Percentage of Loads in DSL",
+  Dispatcher: [
+    "Dispatcher - Total ktonnes by Shift","Dispatcher - % NOH (Shovel)","Dispatcher - % NOH (Trucks)",
+    "Dispatcher - Shovel Wait (mins/cycle)","Dispatcher - Shovel Wait - Ore (mins/cycle)","Dispatcher - Shovel Wait - Waste (mins/cycle)",
+    "Dispatcher - Queue vs Hang (%)","Dispatcher - Trucking Allocation % by LU",
+    "Dispatcher - Cycle Time (avg/min)","Dispatcher - Cycle Time Waste Dumps (avg/min)","Dispatcher - Cycle Time Crusher (avg/min)",
+    "Dispatcher - Truck Wait at Shovel (mins/cycle)","Dispatcher - Truck Wait at Dump (mins/cycle)","Dispatcher - Truck Wait at Crusher (mins/cycle)",
+    "Dispatcher - Average Stopped Empty Time (min)","Dispatcher - Stopped Empty Count per Shift",
+    "Dispatcher - Average Stopped Loaded Time (min)","Dispatcher - Stopped Loaded Count per Shift",
+    "Dispatcher - First Hour Total Moved","Dispatcher - Last Hour Total Moved",
+    "Dispatcher - Truck on Alternative Route","Dispatcher - No Access Beacon","Dispatcher - No Route to Shovel",
+    "Dispatcher - Ore Dumped at Waste Dump","Dispatcher - Waste Dumped at Stockpile","Dispatcher - Truck Off Route",
+    "Dispatcher - Crusher Utilization","Dispatcher - Truck Dump Time at Crusher (mins/cycle)",
   ],
   Delay: [
     "Delay - Hot Change","Delay - Shovel Move","Delay - Face Prep","Delay - Change Operator","Delay - Shift Change",
