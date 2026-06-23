@@ -655,9 +655,23 @@ function renderLog(records) {
   `).join('');
 }
 
+// ── Export helpers ────────────────────────────────────────────────────────────
+function roleRank(r) {
+  if (r.kpis.some(k => k.startsWith('Shovel Operator - '))) return 0;
+  if (r.kpis.some(k => k.startsWith('Truck Operator - '))) return 1;
+  return 2;
+}
+function sortForExport(records) {
+  const crew = { 'Crew A': 0, 'Crew B': 1, 'Crew C': 2, 'Crew D': 3 };
+  return [...records].sort((a, b) => {
+    const cd = (crew[a.crew] ?? 99) - (crew[b.crew] ?? 99);
+    return cd !== 0 ? cd : roleRank(a) - roleRank(b);
+  });
+}
+
 // ── Export (filtered by active crew) ──────────────────────────────────────────
 function exportCSV() {
-  const records = filteredRecords();
+  const records = sortForExport(filteredRecords());
   if (!records.length) return;
   const headers = ['Submission #','Timestamp','Date of Discussion','Crew','Leader Name','Operator Badge #','Operator Name','KPIs Discussed','Follow-up Required','Comments'];
   const esc = v => `"${String(v ?? '').replace(/"/g,'""')}"`;
