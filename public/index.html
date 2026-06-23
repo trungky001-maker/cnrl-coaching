@@ -153,7 +153,9 @@
   .log-kpis strong { color: var(--text); }
   .btn-export { margin: 0 20px 16px; background: transparent; border: 1px solid var(--border); color: var(--sub); font-family: 'Barlow', sans-serif; font-size: 12px; padding: 8px 16px; border-radius: 5px; cursor: pointer; transition: all 0.2s; }
   .btn-export:hover { border-color: var(--navy); color: var(--navy); }
-  .crew-filter { display: flex; gap: 6px; padding: 12px 20px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+  .crew-filter { display: flex; gap: 8px; padding: 12px 20px; border-bottom: 1px solid var(--border); flex-wrap: wrap; align-items: flex-end; }
+  .crew-btn-wrap { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+  .crew-count { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 13px; color: var(--navy); line-height: 1; }
   /* ── Password modal ── */
   .modal-overlay { position: fixed; inset: 0; background: rgba(10,20,50,0.55); z-index: 300; display: flex; align-items: center; justify-content: center; }
   .modal-overlay.hidden { display: none; }
@@ -328,11 +330,11 @@
       <div class="log-count" id="logCount">0</div>
     </div>
     <div class="crew-filter" id="crewFilter" style="display:none;">
-      <button class="crew-btn active" onclick="filterCrew('All', this)">All</button>
-      <button class="crew-btn" onclick="filterCrew('Crew A', this)">Crew A</button>
-      <button class="crew-btn" onclick="filterCrew('Crew B', this)">Crew B</button>
-      <button class="crew-btn" onclick="filterCrew('Crew C', this)">Crew C</button>
-      <button class="crew-btn" onclick="filterCrew('Crew D', this)">Crew D</button>
+      <div class="crew-btn-wrap"><div class="crew-count" id="cnt_All">0</div><button class="crew-btn active" onclick="filterCrew('All', this)">All</button></div>
+      <div class="crew-btn-wrap"><div class="crew-count" id="cnt_A">0</div><button class="crew-btn" onclick="filterCrew('Crew A', this)">Crew A</button></div>
+      <div class="crew-btn-wrap"><div class="crew-count" id="cnt_B">0</div><button class="crew-btn" onclick="filterCrew('Crew B', this)">Crew B</button></div>
+      <div class="crew-btn-wrap"><div class="crew-count" id="cnt_C">0</div><button class="crew-btn" onclick="filterCrew('Crew C', this)">Crew C</button></div>
+      <div class="crew-btn-wrap"><div class="crew-count" id="cnt_D">0</div><button class="crew-btn" onclick="filterCrew('Crew D', this)">Crew D</button></div>
     </div>
     <div id="logBody">
       <div class="log-empty">No submissions yet. Completed forms will appear here.</div>
@@ -607,6 +609,11 @@ async function loadLog() {
   try {
     const res = await fetch('/api/submissions');
     allRecords = await res.json();
+    document.getElementById('cnt_All').textContent = allRecords.length;
+    document.getElementById('cnt_A').textContent = allRecords.filter(r => r.crew === 'Crew A').length;
+    document.getElementById('cnt_B').textContent = allRecords.filter(r => r.crew === 'Crew B').length;
+    document.getElementById('cnt_C').textContent = allRecords.filter(r => r.crew === 'Crew C').length;
+    document.getElementById('cnt_D').textContent = allRecords.filter(r => r.crew === 'Crew D').length;
     document.getElementById('crewFilter').style.display = allRecords.length ? 'flex' : 'none';
     renderLog(filteredRecords());
   } catch {
