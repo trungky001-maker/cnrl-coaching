@@ -348,7 +348,7 @@
 <div class="modal-overlay hidden" id="pwModal">
   <div class="modal-box">
     <div class="modal-title">Access Required</div>
-    <div class="modal-sub">Enter the password to view submitted records.</div>
+    <div class="modal-sub" id="pwModalSub">Enter the password to view submissions.</div>
     <input class="modal-input" type="password" id="pwInput" placeholder="Password"
       onkeydown="if(event.key==='Enter')checkPassword()" />
     <div class="modal-error" id="pwError">Incorrect password. Please try again.</div>
@@ -615,7 +615,9 @@ async function loadLog() {
     document.getElementById('cnt_C').textContent = allRecords.filter(r => r.crew === 'Crew C').length;
     document.getElementById('cnt_D').textContent = allRecords.filter(r => r.crew === 'Crew D').length;
     document.getElementById('crewFilter').style.display = allRecords.length ? 'flex' : 'none';
-    renderLog(filteredRecords());
+    document.getElementById('logBody').innerHTML = '<div class="log-empty">Select a crew tab and enter the password to view submissions.</div>';
+    document.getElementById('exportBtn').style.display = 'none';
+    document.getElementById('logCount').textContent = '0';
   } catch {
     // server not reachable — log stays empty
   }
@@ -626,10 +628,11 @@ function filteredRecords() {
 }
 
 function filterCrew(crew, btn) {
-  activeCrew = crew;
-  document.querySelectorAll('.crew-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  renderLog(filteredRecords());
+  pendingCrew = crew;
+  pendingCrewBtn = btn;
+  document.getElementById('pwModalSub').textContent =
+    `Enter the password for ${crew === 'All' ? 'All Crews' : crew}.`;
+  openModal();
 }
 
 function renderLog(records) {
@@ -698,16 +701,28 @@ function exportCSV() {
   a.click();
 }
 
-// ── Password & log toggle ──────────────────────────────────────────────────────
-const LOG_PASSWORD = 'CNRL01';
+// ── Per-crew passwords & log toggle ───────────────────────────────────────────
+const CREW_PASSWORDS = {
+  'All':    'CNRL01',
+  'Crew A': 'ALPHA',
+  'Crew B': 'BETA',
+  'Crew C': 'CHARLIE',
+  'Crew D': 'DELTA',
+};
+let pendingCrew = null;
+let pendingCrewBtn = null;
 
 function toggleLog() {
   const section = document.getElementById('logSection');
   if (section.style.display !== 'none') {
     section.style.display = 'none';
     document.getElementById('logToggleBtn').textContent = 'Show Submitted Records';
+    activeCrew = 'All';
+    document.querySelectorAll('.crew-btn').forEach(b => b.classList.remove('active'));
   } else {
-    openModal();
+    section.style.display = 'block';
+    document.getElementById('logToggleBtn').textContent = 'Hide Submitted Records';
+    loadLog();
   }
 }
 
@@ -721,19 +736,24 @@ function openModal() {
 
 function closeModal() {
   document.getElementById('pwModal').classList.add('hidden');
+  pendingCrew = null;
+  pendingCrewBtn = null;
 }
 
 function checkPassword() {
   const val = document.getElementById('pwInput').value;
-  if (val === LOG_PASSWORD) {
+  if (val === CREW_PASSWORDS[pendingCrew]) {
+    const crew = pendingCrew;
+    const btn  = pendingCrewBtn;
     closeModal();
-    document.getElementById('logSection').style.display = 'block';
-    document.getElementById('logToggleBtn').textContent = 'Hide Submitted Records';
-    loadLog();
+    activeCrew = crew;
+    document.querySelectorAll('.crew-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderLog(filteredRecords());
   } else {
     const inp = document.getElementById('pwInput');
     inp.classList.remove('shake');
-    void inp.offsetWidth; // restart animation
+    void inp.offsetWidth;
     inp.classList.add('shake');
     document.getElementById('pwError').classList.add('visible');
     inp.value = '';
