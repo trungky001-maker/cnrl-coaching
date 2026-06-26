@@ -182,6 +182,33 @@
   .role-btn:hover { border-color: var(--navy); color: var(--navy); background: var(--navy-lt); }
   .role-btn.active { background: var(--navy); border-color: var(--navy); color: #fff; }
 
+  /* ── Playbook Search ── */
+  .btn-playbook { background: transparent; border: 1.5px solid var(--navy); color: var(--navy); font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; padding: 5px 12px; border-radius: 4px; cursor: pointer; transition: all 0.15s; white-space: nowrap; flex-shrink: 0; }
+  .btn-playbook:hover { background: var(--navy); color: #fff; }
+  .pb-modal { position: fixed; inset: 0; background: rgba(10,20,50,0.6); z-index: 400; display: flex; align-items: flex-start; justify-content: center; padding: 72px 12px 20px; }
+  .pb-modal.hidden { display: none; }
+  .pb-box { background: #fff; border-radius: 10px; width: 700px; max-width: 100%; max-height: calc(100vh - 92px); display: flex; flex-direction: column; box-shadow: 0 20px 60px rgba(0,0,0,0.28); overflow: hidden; }
+  .pb-hdr { background: var(--navy); padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+  .pb-ttl { font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 15px; letter-spacing: 1.5px; text-transform: uppercase; color: #fff; }
+  .pb-close { background: none; border: none; color: rgba(255,255,255,0.7); font-size: 18px; cursor: pointer; line-height: 1; padding: 2px 8px; border-radius: 3px; }
+  .pb-close:hover { background: rgba(255,255,255,0.15); color: #fff; }
+  .pb-search { padding: 12px 16px 10px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+  .pb-input { width: 100%; border: 1px solid var(--border); border-radius: 5px; padding: 9px 13px; font-family: 'Barlow', sans-serif; font-size: 14px; outline: none; color: var(--text); }
+  .pb-input:focus { border-color: var(--navy); box-shadow: 0 0 0 3px rgba(26,111,186,0.12); }
+  .pb-hint { font-size: 11px; color: var(--muted); margin-top: 5px; }
+  .pb-results { overflow-y: auto; flex: 1; }
+  .pb-empty { padding: 28px 16px; text-align: center; color: var(--muted); font-size: 13px; }
+  .pb-result { border-bottom: 1px solid var(--border); cursor: pointer; }
+  .pb-result:hover .pb-result-hdr { background: var(--navy-lt); }
+  .pb-result.open { background: var(--navy-lt); }
+  .pb-result-hdr { padding: 11px 16px 6px; display: flex; align-items: baseline; gap: 10px; }
+  .pb-sec { font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--navy); background: var(--navy-lt); padding: 2px 7px; border-radius: 3px; flex-shrink: 0; }
+  .pb-result-title { font-weight: 600; font-size: 13px; color: var(--text); }
+  .pb-snippet { padding: 2px 16px 10px; font-size: 12px; color: var(--sub); line-height: 1.55; }
+  .pb-body { padding: 10px 16px 14px; font-size: 12.5px; color: var(--text); line-height: 1.7; display: none; border-top: 1px solid var(--border); white-space: pre-wrap; }
+  .pb-result.open .pb-body { display: block; }
+  mark { background: #fff176; border-radius: 2px; padding: 0 1px; }
+
   @media (max-width: 480px) {
     .field-row { grid-template-columns: 1fr; }
     .kpi-items { grid-template-columns: 1fr; }
@@ -207,7 +234,10 @@
       <div class="header-sub">Complete all required fields before submitting</div>
     </div>
   </div>
-  <div class="header-badge">Internal</div>
+  <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;">
+    <button class="btn-playbook" onclick="openPlaybook()">&#128216; Search Playbook</button>
+    <div class="header-badge">Internal</div>
+  </div>
 </div>
 
 <div class="progress-bar-wrap">
@@ -355,6 +385,23 @@
     <div class="modal-actions">
       <button class="btn-modal-cancel" onclick="closeModal()">Cancel</button>
       <button class="btn-modal-ok" onclick="checkPassword()">Unlock</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Playbook Search Modal ── -->
+<div class="pb-modal hidden" id="pbModal">
+  <div class="pb-box">
+    <div class="pb-hdr">
+      <div class="pb-ttl">CNRL Horizon Production Playbook</div>
+      <button class="pb-close" onclick="closePlaybook()">&#10005;</button>
+    </div>
+    <div class="pb-search">
+      <input class="pb-input" type="text" id="pbInput" placeholder="Search… e.g. hang time, fueling, payload, spot time, parking, dynamic dispatch" oninput="searchPlaybook()" onkeydown="if(event.key==='Escape')closePlaybook()" />
+      <div class="pb-hint">Click a result to expand the full section content &nbsp;&#8226;&nbsp; HZN-10B-MAN-OP-000001</div>
+    </div>
+    <div class="pb-results" id="pbResults">
+      <div class="pb-empty">Type a keyword to search the CNRL Horizon Production Playbook.</div>
     </div>
   </div>
 </div>
@@ -764,7 +811,660 @@ function checkPassword() {
 // Close modal on backdrop click
 document.addEventListener('click', e => {
   if (e.target.id === 'pwModal') closeModal();
+  if (e.target.id === 'pbModal') closePlaybook();
 });
+
+// ── Playbook Search ────────────────────────────────────────────────────────────
+const PLAYBOOK_SECTIONS = [
+  { id:'intro', section:'1.0', title:'Introduction', content:`This Mine Operations Best Practices Playbook defines the operating philosophies, roles, standards, and performance expectations required to achieve safe, consistent, and efficient mine production. It supports disciplined operational execution through standardized decision-making, accountability, and coordination between General Foremen (GF), Shift Team Leads (STL), and Dispatchers. The playbook establishes expectations for SIC, fleet management, equipment status reporting, and KPI performance management, and includes flowcharts defining expected STL and Dispatcher responses to off-target performance. This document is intended to be ever changing that evolves with operational goals, operating strategies, and continuous improvement initiatives.` },
+  { id:'gen_strat', section:'2.0', title:'General Operating Strategy', content:`Mine production is limited by the active bottleneck within the load and haul system. At any given time, the bottleneck shall be identified as either Haul Trucks or Loading Units. The bottleneck resource determines the mine's maximum achievable production. All operational decisions shall prioritize protecting and maximizing the productivity of the active bottleneck.` },
+  { id:'bottleneck', section:'2.1', title:'Bottleneck Identification', content:`Dispatch and Shift Team Leads shall continuously monitor the operation to identify the active bottleneck using: equipment utilization and availability, wait times and queue trends, hang time and spot time trends, SIC KPI performance, field observations and operational feedback.
+
+Bottleneck identification shall be based on sustained operating conditions, not short-term events.
+
+Once the bottleneck is identified:
+- Non-bottleneck resources shall support the bottleneck, even if it creates minor inefficiencies elsewhere.
+- Actions that reduce bottleneck productivity are not permitted unless required for safety or directed by Operations Leadership.
+- Use bottleneck relief opportunities to complete fueling, inspections, maintenance, breaks, and training on non-bottleneck equipment.
+
+This approach ensures the operation works together to maximize total mine production rather than focusing only on local priorities.` },
+  { id:'decision', section:'2.2', title:'Decision-Making Expectations', content:`Operational decisions related to equipment deployment, routing, fueling, maintenance, and task prioritization shall be guided by the following question: "Does this decision protect or improve the productivity of the active bottleneck?" If the answer is no, the decision should be reassessed unless required for safety, mine plan compliance, or equipment integrity.` },
+  { id:'over_under', section:'2.3', title:'Over-Trucked and Under-Trucked Operating Scenarios', content:`Mine performance depends on maintaining the correct balance between haul truck and loading unit capacity.
+
+An UNDER-TRUCKED condition exists when there are not enough haul trucks to fully utilize loading units, typically resulting in high shovel hang time.
+
+An OVER-TRUCKED condition exists when truck capacity exceeds loading unit capacity, typically resulting in high truck queues and wait times at shovels.
+
+Typical actions:
+- Maximize productivity and operating time of the bottleneck resource.
+- Minimize truck delays, wait times, and interruptions.
+- Improve haul road conditions and reduce cycle times where practical.
+- Maximize payload compliance.
+- Reduce shovel hang time, truck spot time, and loading delays.
+- Prioritize double-side loading where safe and practical.
+- Monitor and correct excessive crusher and dump wait times.
+- Coordinate fueling, inspections, and maintenance to minimize production impacts.
+- Manage excess truck capacity, including parking trucks when required.
+- Actions that reduce bottleneck productivity are not permitted unless required for safety or directed by Operations Leadership.` },
+  { id:'sic_overview', section:'3.1', title:'SIC Overview', content:`Short Interval Control (SIC) is a management operating system that enables rapid identification of production gains and losses and drives timely, consistent action during the shift. It creates shared visibility, clear expectations, and standardized responses so the operation can actively control performance during a shift.
+
+Why implement SIC at CNRL Horizon:
+- Provides real-time transparency on where production is being gained or lost, and why
+- Enables fast, consistent action through defined trigger-action responses and playbooks
+- Aligns dispatchers, supervisors, and operators around the same data and priorities
+- Establishes clear expectations, accountability, and feedback through SIC tools and visual management
+- Builds a trained, informed operations team with hour-by-hour visibility of performance
+- Creates the structure to sustain and continuously improve core processes (e.g. shift change, fueling, maintenance interactions)
+
+Expected Outcome:
+1. An operation that understands its performance in real time, takes consistent action on underperformance, and continuously improves how work is done across the shift.
+2. A step-change in mine efficiency — more tonnes.` },
+  { id:'sic_process', section:'3.2', title:'SIC Process Expectation', content:`General SIC process expectations for STLs and Dispatchers throughout every shift:
+
+1. Monitor the SIC software for your assigned shovel/pit areas and all the areas KPIs. Start ~2 hours after shift have started and every ~2 hours afterwards.
+
+2. If your KPI is below target:
+   - STLs: Travel to your areas of concern and observe the operations, look to identify the root cause of the concern.
+   - Dispatchers: Investigate what shovel pit or dump is your issues/bottleneck.
+
+3. Determine what action you're able to take to improve performance. Refer to the KPI Action Protocols in Appendix A.
+
+4. Execute action(s) as per protocols.
+
+5. Document the action(s) taken, the time completed, the KPI targeted for improvement. These are the key talking points at the Visual Management Meeting.
+
+6. Continue to monitor performance every 1-2 hours:
+   - If KPI is above target, no further action.
+   - If KPI is trending in the correct direction but not yet at target, re-start process at step 1.
+
+Important: Continue process throughout the day for all your responsible areas and their KPIs.` },
+  { id:'visual_mgmt', section:'3.3', title:'Visual Management Expectations', content:`The Visual Management process is a check-in with the General Foreman with their Dispatchers and STLs as an accountability check-in to verify that actions are being completed to improve poor performing KPIs.
+
+Meeting Standard and Expectations:
+- Time: Occurs twice per shift, 5 am/pm and 11:00 am/pm
+- Length: The meeting should not take more than 15 minutes
+- Attendance: GF, Pit STL, Dump STLs, and Dispatchers
+
+Expectations:
+- Open the Visual Management page in the SIC software and review each KPI one-by-one starting from the top.
+- If green (better than target) the KPI can be skipped as it is generally good.
+- If KPI is underperforming against target (red), it is expected that you will speak to your KPI answering these three questions:
+  1. What time did you notice the issue?
+  2. What actions did you take to improve performance?
+  3. Did the action improve the KPI performance? If not, approximately what time do you expect it to improve?
+
+The purpose of answering the three specific questions is to verify STLs are taking actions to improve production performance and highlight any issues that can be resolved by the GF.
+
+Multiple STLs may need to speak to underperformance of an individual KPI if they jointly own it. Example: Electric shovel load times spans across multiple STLs.
+
+Reminder: Ensure to discuss any support that would improve your KPI. Example: "I could use an extra dozer to rip above the shovel to help improve the shovels loading time".` },
+  { id:'scorecard_ts', section:'4.1', title:'Truck and Shovel Scorecards', content:`The Truck and Shovel Scorecard process is intended to drive truck and shovel operator continuous improvement through structured coaching, accountability, and follow-up.
+
+Process:
+1. Superintendent Kickoff - At the beginning of each month, Superintendents and General Foreman shall review previous month's performance, identify 2-3 KPI focus areas, and communicate selected KPI priorities to Efficiency STLs.
+
+2. Scorecard Review and Operator Selection - GFs and Efficiency STLs shall jointly review Truck and Shovel Scorecards to identify operators requiring additional coaching or support. Consider experience level, assignment difficulty, weather, training status when selecting operators. Coaching discussions shall then be assigned to specific STLs for completion during the rotation.
+
+3. Initial Coaching Discussions - Assigned STLs shall schedule coaching discussions early in the month, review KPI performance and explain improvement opportunities, align with operators on improvement expectations and action plans, and document all discussions within the Scorecard Conversation Log.
+
+4. Monthly Monitoring and Follow-Up - STLs shall monitor operator performance throughout the month, provide ongoing coaching and support, reinforce positive behaviors and follow up on agreed actions.
+
+5. Closeout Discussions - Complete a closeout discussion near the end of the month to review progress, identify additional support needed, and document final outcomes.` },
+  { id:'scorecard_disp', section:'4.2', title:'Dispatcher Scorecards', content:`The Dispatcher Scorecard process is intended to improve dispatch performance consistency, accountability, communication, and operational decision-making through regular structured reviews and documented action plans.
+
+1. Scorecard Kickoff and Alignment - At the beginning of each day-shift rotation, the Dispatch Lead shall coordinate short Dispatcher scorecard alignment meetings with the Superintendent and GF, review previous performance results and upcoming focus areas, and align messaging, coaching priorities, and operational expectations.
+
+2. Dispatcher Scorecard Reviews - The Dispatch Lead, Superintendent, and GF will jointly review Dispatcher Scorecards, covering: review of previous commitments, actions, and focus areas; review of prior rotation performance results; discussion of barriers or operational issues impacting performance; identification of upcoming focus areas and required improvement actions.
+
+3. Action Planning and Accountability - All agreed actions and commitments shall be assigned to a specific individual, include clear expectations and due dates, and be tracked and followed up on during future discussions.
+
+4. Documentation Requirements - All discussions shall be logged with at minimum coaches name, operator name, conversation date, and improvement activities planned.` },
+  { id:'coaching_bp', section:'4.3', title:'Coaching Best Practices', content:`Coaching discussions are intended to support operator development, improve operational consistency, and reinforce continuous improvement. Coaching shall focus on helping operators understand performance expectations, improve controllable KPIs, and contribute positively to overall mine performance.
+
+1. Coaching Purpose and Mindset:
+   - Support development and continuous improvement, not discipline
+   - Reinforce safe and efficient operating practices
+   - Focus on improving performance through operational support and accountability
+   - Emphasize working more efficiently, not more quickly, while maintaining safe operating practices at all times
+
+2. KPI Review Expectations - During coaching discussions, STLs shall review scorecard KPI performance against peers and operational targets, explain KPI definitions and operational expectations, discuss what good performance looks like for each KPI, reinforce that targets are based on operational averages and best practices.
+
+3. Focus on Controllable Metrics - Coaching discussions shall focus only on metrics within operator control. STLs shall also discuss actions being taken operationally to support improvement, including SIC actions, operational changes, and additional support where required.
+
+4. Coaching and Improvement Support - STLs shall discuss barriers or challenges, identify training or operational support opportunities, align on specific improvement actions, and establish a simple action plan including: action/activity to improve performance, operator commitment, and follow-up discussion date.
+
+5. Follow-Up and Accountability - STLs shall follow up regularly on operator progress, document all coaching discussions and commitments, reinforce positive improvements, and recognize operators for improvement.` },
+  { id:'gf_resp', section:'5.1', title:'General Foreman Responsibilities', content:`The General Foreman is the primary accountable role for shift level Mine Operations safety, execution, overall ore and waste mine production.
+
+Primary Responsibilities:
+- Drive accountability to SIC usage and actions to improve production through Visual Management (VM) accountability touchpoints.
+- Direct truck/shovel balancing and equipment parking decisions when required, including parking trucks and parking shovels, adhering to the protocols.
+- Ensure production targets, ore blend, and haulage priorities are achieved.
+
+Accountable KPIs: Holds overall accountability for all mine KPIs within the 12-hour shift and ensures corrective actions are performed following SIC when performance declines.` },
+  { id:'pit_stl', section:'5.2', title:'Pit Shift Team Lead Responsibilities', content:`Primary Responsibilities Include:
+- Ensure oilsands is delivered to crushers at planned production rates and blend targets.
+- Use SIC tools, KPIs, and VM meetings to identify issues, communicate constraints, and take corrective action.
+- Monitor and improve shovel pit KPIs and coordinate with Dispatch to maintain balanced truck allocation.
+- Ensure shovel pits are prepared for efficient truck spotting and loading, including pit floors, lighting, water management, and traffic flow.
+- Coach operators on the importance of accurate equipment status reporting.
+
+Visual Management Responsible KPIs:
+- Shovel Load Time
+- % Double Side Loading
+- Spot Time
+- Payloads
+- Shovel Delays` },
+  { id:'dump_stl', section:'5.3', title:'Dump Shift Team Lead Responsibilities', content:`Primary Responsibilities:
+- Use SIC tools, KPIs, and VM meetings to identify, communicate, and resolve dump performance issues and constraints.
+- Monitor and improve dump wait times, dump times, traffic flow, and overall dump productivity.
+- Coordinate with Dispatch and field operations, including redirecting trucks when required to maintain performance.
+- Coach operators on the importance of accurate equipment status reporting.
+
+Visual Management Responsible KPIs:
+- Wait at Dump Times
+- Haul Truck Dumping Times
+- Haul Truck Delays` },
+  { id:'disp_resp', section:'5.4', title:'Dispatcher Responsibilities', content:`Primary Responsibilities:
+- Dynamically dispatch trucks to optimize production and reduce delays.
+- Use SIC tools and KPIs to identify issues and take corrective action.
+- Participate in VM meetings and communicate fleet performance and constraints.
+- Balance truck allocation across shovels, dumps, and crushers.
+- Monitor and respond to queueing, hang time, and haulage inefficiencies.
+- Maintain Wenco system accuracy including locations, statuses, and material assignments.
+- Monitor GPS/network health and escalating communication issues.
+- Coordinate continuously with GFs, STLs, Plant, and Maintenance.
+- Support truck and shovel parking strategies to improve system efficiency.
+- Ensure accurate delay tracking, reporting, and dispatch discipline.
+
+Visual Management Responsible KPIs:
+- Wait at LU
+- Wait at Crusher
+- Shovel Hang Time` },
+  { id:'haul_cycle', section:'6.1', title:'Wenco Haul Cycle Components', content:`Wait at Loading Unit: Inside the loading unit digital wait location and under a set speed/time threshold. Trigger Example: 4 km/h for 5 seconds.
+
+Spot at Shovel: Time required to position the truck to be loaded, triggered only when a haul truck is (a) located inside the loading unit digital wait area, and (b) was first in "Wait at Loading Unit" status. Wenco assigns zero Spot at Shovel time when the shovel is loading another truck or the truck does not trigger Wait at Loading Unit.
+
+Loading:
+- Single-Side Loading: Loading time starts with the first bucket and ends when the loaded truck leaves the shovel radius and enters Travel Full. A "free bucket" occurs when the truck leaves the shovel radius, placing the shovel into "Hang."
+- Double-Side Loading: Loading time starts when the previous truck enters Travel Full and ends with the final bucket on the second truck. Wenco reported load times in double-side loading will often be higher than in single-side loading, despite being more productive overall.
+
+Travel Full: Time starts when the haul truck leaves the shovel load polygon.
+
+Stopped Full: Time accumulates only when full and between loading unit digital wait area and dump area. Trigger: 4 km/h for 10 seconds.
+
+Wait at Dump: Time accumulates only inside the dump digital wait location. Trigger: 4 km/h for 5 seconds.
+
+Dumping: Time required to dump the haul truck load, triggered by dump start/stop signals from the truck's VIMS system.
+
+Travel Empty: Time when empty and between loading unit digital wait area and dump area.
+
+Stopped Empty: Time when empty, between loading unit digital wait area and dump area. Trigger: 4 km/h for 10 seconds.` },
+  { id:'shovel_cycle', section:'6.2', title:'Wenco Shovel Cycle Components', content:`Spot: Shovel spot time accumulated while a haul truck is in "spot at shovel" status.
+
+Load:
+- Single-Side Loading: Loading time starts with the first bucket and ends when the loaded truck leaves the shovel radius and enters Travel Full. A "free bucket" occurs when the truck leaves the shovel radius, placing the shovel into "Hang."
+- Double-Side Loading: Loading time starts when the previous truck enters Travel Full and ends with the final bucket on the second truck.
+
+Hang: Shovel time accumulated for a shovel that is waiting on a truck.` },
+  { id:'mine_map', section:'7.1', title:'Mine Map', content:`7.1.1 Elevations - Beacons: Place beacons at inflection points and avoid moving them where possible. Inflection points include ramp crests/toes and intersections.
+Objects: Continuously maintain accurate dump and stockpile elevations. Elevations may be verified using dozer grade control, dump playback, or position playback. Use caution when relying on haul truck position data, as low-precision GPS may introduce errors of up to 10 m.
+
+7.1.2 Segment Lengths: Virtual Segment: Maintain segment lengths between 50-250 m. Fixed Segment: Maintain segment lengths between 250-500 m where no elevation changes, curves, or intersections exist. Coach operators to report incorrect PitNav routing or map inaccuracies.
+
+7.1.3 Hopper Settings: Set hopper target rates based on hopper pull capacity and operating interruptions. Actual rates will vary due to fueling, switch-outs, road obstructions, and operational delays. Monitor bin levels and adjust rates as required. Avoid over-trucking ore groups, as excessive truck allocation may negatively impact blend performance.
+
+7.1.4 Empty/Full Dispatch Beacons: Position dispatch beacons as close as practical to loading units, crushers, and dumps. Proper beacon placement improves dispatch responsiveness during operational changes or interruptions.
+
+7.1.5 Locks and Bars: Minimize the use of locks and bars, as they restrict dynamic dispatch optimization. Use only where operationally required. Bars are most effective for preventing trucks from delivering ore to restricted destinations.` },
+  { id:'golden_std', section:'7.2', title:'Golden Standards', content:`- Operators shall always follow Wenco assignments.
+- Dynamic dispatch schedules multiple trucks simultaneously; deviations disrupt downstream assignments and reduce optimization effectiveness.
+- Obtain advance notice of planned interruptions, shutdowns, or operational delays where possible.
+- Loading unit operators shall communicate expected interruptions and estimated delay durations as early as possible.
+- Loading units within the same group or blend shall not be delayed simultaneously where avoidable.
+- Dispatch maintains final authority on loading unit scheduling within dynamic groups.
+- Dispatch beacons shall maintain good GPS coverage and be positioned a minimum of 150 m before major turns, intersections, or loading units.
+- Notify operators before enabling dynamic dispatch using group messaging.
+- Geology, survey, training, and maintenance personnel shall obtain dispatcher approval before interrupting production loading units.
+- Haul truck operators shall notify Dispatch before entering delays.
+- All MineMap changes shall be communicated to the appropriate support personnel.` },
+  { id:'troubleshoot', section:'7.3', title:'Troubleshooting', content:`- Use Shovel-Dump-Shovel displays to identify broken or missing routes. Solid lines indicate valid routes. Dotted lines indicate missing or broken routes.
+- If truck requirement calculations appear incorrect, verify routes and segment configurations.
+- Verify dispatch times following shovel heading changes, as updates may not occur immediately.
+- Incorrect crusher dump times may prevent crushers from achieving target rates.
+- Use dispatch times to restore crusher dump targets where required.
+- If truck allocation behavior appears abnormal, verify segment travel times using the Wenco Health Tool.
+- Wenco calculations are time-based; inaccurate travel times will negatively impact dispatch optimization.` },
+  { id:'dynamic_disp', section:'7.4', title:'Dynamic Dispatching Best Practices', content:`7.4.1 Communication:
+- Notify operators before enabling dynamic dispatch.
+- Use group messaging to communicate dispatch or assignment changes.
+- Encourage operators to communicate operational or safety concerns.
+
+7.4.2 Dynamic Group Configuration:
+General Expectations:
+- Dynamic dispatch performs best in slightly under-trucked conditions.
+- Dynamic groups should only be created where suitable operational overlap exists: shared dig face, shared segment or intersection, or shared dump or crusher.
+
+Group Size: Limit two-loading-unit groups to approximately eight haul trucks where practical.
+
+Locks and Bars: Minimize locks and bars as they reduce optimization effectiveness. Use only where operationally required.
+
+Priorities and Targets: Wenco naturally prioritizes the most productive loading units. Dispatch priorities and dig rates shall remain aligned with mine plan requirements, crusher feed requirements, and blend targets. Manual priority adjustments may be required.` },
+  { id:'ghost_equip', section:'7.5', title:'Ghost Equipment Management', content:`7.5.1 Ghosted Loading Units:
+- Position ghosted loading units using playback tools.
+- Notify haul truck operators when manual cycling is required.
+
+7.5.2 Ghosted Haul Trucks:
+- Do not include ghosted haul trucks within dynamic groups, if possible.
+- Assign ghosted haul trucks to non-group loading units where practical.
+- Coordinate manual cycling as required.
+
+7.5.3 General Expectations:
+- Continuously maintain Wenco maps and routes throughout the shift.
+- Minimize unnecessary dispatch restrictions.
+- Use playback tools and field feedback to maintain system accuracy.
+- Align dispatch strategy with mine plan and production priorities.
+- Proactively communicate operational changes and constraints.` },
+  { id:'fueling', section:'7.6', title:'Fueling', content:`7.6.1 Fuel Monitoring Overview:
+Fuel status is monitored using the Wenco Fuel Dispatch Dashboard and MineVu Insights. Dispatch shall monitor: real-time fuel levels, estimated hours remaining, fuel eligibility status, critical fuel alerts, and truck operating status. Dispatch shall proactively coordinate fueling activities to minimize production impacts.
+
+7.6.2 Fuel Threshold Standards:
+- Fuel eligible threshold: A haul truck becomes eligible for fueling when it reaches approximately 3.5 hours of fuel remaining.
+- Critical Fuel Threshold: Fuel levels are considered critical at 15% fuel remaining or approximately 2.0 hours of fuel remaining. When critical levels are reached, immediately dispatch truck for fuel. Critical fuel events are considered preventable and should be avoided.
+
+7.6.3 Typical Fueling Process:
+1. Dispatchers monitor fuel dashboard for: fuel eligible trucks, critical fuel alerts, missing or delayed fuel readings. Priority focus is placed on units approaching critical thresholds.
+2. Identify fueling opportunities, with the objective to minimize impacts to production by scheduling fueling during existing truck delays where practical, following Wenco auto-fueling notifications, or when trucks are passing near the fuel bay.
+3. After fueling: Trucks shall return to assigned production activity. Dispatcher shall verify: correct equipment status, fuel level updates, any abnormal delays or issues are documented.` },
+  { id:'park_shovel', section:'A.1', title:'Parking Shovel Protocol', content:`The protocol defines the process for the on-shift General Foreman (Accountable) and Dispatchers (Responsible) to determine when shovels are to be parked under the 2026 "WIG - Battle #4" initiative.
+
+Monitor "Shovel Hang - Waste" times every 30 minutes via: SIC Report → Hourly Performance → Shovel Hang - Waste
+
+If times are within normal operating times (<2:00 min):
+→ Standard Operation: Dispatcher continues normal operations to optimize Shovel Hang across the fleet
+
+If times exceed 2:00 min for >2 hrs → PARK SHOVEL:
+- Step 1: Dispatcher - Inform GF that "Parking Shovel Protocol" has been triggered
+- Step 2: Dispatcher - Recommend shovel unit to park
+- Step 3: GF - Provide direction as to which specific shovel to park
+- Step 4: Dispatcher - Park shovel and assign Delay code "Standby - Not Required". Ensure shovel is turned off.
+
+Important:
+1. Ensure correct shovel unit is parked based on management decision under Battle 4.
+2. General Foreman is required to provide justification to Superintendent if Parking Shovel Protocol triggers (high hang time) are exceeded but a shovel is not parked.` },
+  { id:'park_truck', section:'A.2', title:'Parking Truck Protocol (Battle 10)', content:`The protocol defines the process for the on-shift General Foreman (Accountable) and Dispatchers (Responsible) to determine when trucks are to be parked under the 2026 "WIG - Battle #10" initiative.
+
+Monitor "Truck Wait at Shovel" times every 30 minutes via: SIC Report → Hourly Performance → Truck Wait at Shovel
+
+If times are within normal operating times (<2:12 min):
+→ Standard Operation: Continue normal operations to optimize "Wait at Shovel" times across the fleet
+
+If times exceed 2:12 min for >2 hrs → PARK 1+ TRUCKS:
+- Step 1: Dispatcher - Inform GF that "Parking Truck Protocol" has been triggered
+- Step 2: Dispatcher - Recommend number of trucks to park
+- Step 3: GF - Provide direction on the number of trucks to be parked and which specific units
+- Step 4: Dispatcher - Park trucks as directed and assign Delay code "Battle 10". Ensure trucks are turned off.
+Note: Park trucks until truck "Wait at Shovel" is below 2:12 minutes consistently.
+
+If times exceed 2:30 min for ≥1 hr → PARK 2+ TRUCKS (same steps as above)
+
+Important: General Foreman is required to provide justification to Superintendent if Parking Truck Protocol is deviated from.` },
+  { id:'load_time_p', section:'A.3', title:'Shovel Load Time Protocol', content:`Monitor SIC software every 1-2 hours (Shovel Trends and SIC Report → Loading Units)
+
+If Load Times are below SIC targets → No immediate action, continue to monitor
+
+If Load Times exceed targets → Identify which shovel(s) have high Load Times → Observe several trucks being loaded
+
+STL Actions:
+1. Ensure shovel pits are prepared ahead of time to support productive spotting and loading.
+2. Ensure all shovels are double-side loading when possible. If pit is narrow, develop a plan with shovel operator to widen their pit as quickly as possible.
+3. Communicate Load Times early in the shift to shovel operators with low Load Times, and again 1-2 times through the day until Load Times improve.
+4. Ensure shovel operators are loading trucks and positioned as trained (i.e. center loads, full buckets, square to face, minimizing bucket spill, etc.). Inform the GF if more training is needed.
+5. Observe trucks spotting and coach haul truck operators as required to reduce spot times.
+6. Ensure cleanup is being completed in between truck arrivals.
+7. During winter, ensure dozers are ripping above the shovel.
+8. Inspect shovel teeth daily and notify Pit Utility when replacement is needed.
+9. Inform Maintenance if shovel power appears weak, confirming with the shovel operator.
+
+Dispatcher Actions:
+1. Match the right size of shovels to truck fleets whenever possible. If small trucks (Cat 793 and smaller) are required to be loaded with large shovels, ensure they are assigned to the same shovel.
+
+Combined Actions:
+1. Assign the most experienced/skilled shovel operators to the most difficult dig areas.
+2. Ensure shovel operators are correctly entering their delay statuses, example "Shovel Move", to ensure Load Times are being correctly reported.` },
+  { id:'hang_time_p', section:'A.4', title:'Shovel Hang Time Protocol', content:`Monitor SIC software every 1-2 hours (Shovel Trends and SIC Report → Loading Units/Hourly Report)
+
+If Shovel Hang times are below SIC targets → No immediate action, continue to monitor
+
+If Shovel Hang times exceed targets → Identify which shovel(s) have high Shovel Hang times
+
+Haul trucks are the bottleneck and improving all aspects of the haul cycle times should be treated as highest priority to allow trucks to cycle back to shovels quicker.
+
+Dispatcher Actions:
+1. Maximize the use of Dynamic dispatching to optimize haul truck assignments between shovel/dump groups.
+2. Ensure truck and shovel operators comply with dispatch assignments to allow Dynamic dispatch to more correctly assign trucks.
+3. Make extra efforts to coordinate planned truck delays to avoid too many trucks on delay at the same time. Example: fuel/lube, hot relief, box cleaning, etc.
+4. Coordinate with Maintenance to complete minor shovel work on low priority shovels while undertrucked.
+5. If the blend can be achieved with less shovel capacity, consider parking a shovel or moving it into waste. Consult with GF prior to change.
+6. Shorten waste hauls, where possible, while still adhering to the mine plan. Consult with GF prior to change.
+
+Combined Actions:
+1. Ensure haul truck operators are ready and waiting for Maintenance to release trucks back to Operations.
+2. Ensure operators support Wenco system accuracy by correctly entering delays, material types, status change from dumping to empty, correct dump locations.
+3. Follow the "Parking Shovel Protocol" (Battle 10), which provides guidance on when to park a shovel.` },
+  { id:'payload_p', section:'A.5', title:'Haul Truck Payloads Protocol', content:`Monitor SIC software every 1-2 hours (Shovel Trends and SIC Report → Loading Units)
+
+If Payloads are above SIC targets → No immediate action, continue to monitor
+
+If Payloads are below SIC targets → Identify which shovel(s) have low payloads → Observe several trucks being loaded
+
+Note: If slop is being loaded, still observe several trucks being loaded to identify if any actions can still be performed to improve payloads.
+
+STL Actions:
+1. Communicate payloads early in the shift to shovel operators underloading and maintain communication until payload targets are achieved.
+2. Ensure shovel operators are loading trucks as trained (i.e. center loads, full buckets). Inform the GF if more training is needed.
+3. Ensure truck boxes are cleaned when required to remove carryback.
+4. If shovel and truck sizes cannot be properly matched, the shovel operator should maximize bucket fill and add a partial bucket if needed to top up the truck.
+
+Dispatcher Actions:
+1. Match the right size of shovels to truck fleets whenever possible. If small trucks (Cat 793 and smaller) must be assigned to large shovels, ensure they are assigned to the same large shovel.` },
+  { id:'spot_p', section:'A.6', title:'Spot at Shovel Protocol', content:`Monitor SIC software every 1-2 hours (Shovel Trends and SIC Report → Loading Units)
+
+If Spot at Shovel Times are below SIC targets → No immediate action, continue to monitor
+
+If Spot at Shovel Times exceed targets → Identify which shovel(s) have high Spot at Shovel times → Observe several trucks spotting
+
+STL Actions:
+1. Ensure shovel pits are prepared ahead of time, and maintained well, to support productive spotting (even floors, ponded water/mud pushed aside, cables and stands located correctly, etc.).
+2. Ensure all shovels are double-side loading when possible. If pit is narrow, develop a plan with shovel operator to widen their pit as quickly as possible.
+3. Ensure shovels are positioned to allow efficient spotting, coaching if required. Inform the GF if more training is needed.
+4. Observe trucks spotting and coach haul truck operators as required. Inform the GF if more training is needed.
+
+Combined Actions:
+1. Assign the most experienced/skilled shovel operators to the most difficult dig areas.` },
+  { id:'crusher_p', section:'A.7', title:'Wait and Dump at Crusher Protocol', content:`Monitor SIC software every 1-2 hours (Dump Trends and SIC Report → Hauling Units/Hourly Report)
+
+If Wait/Dump at Crusher times are below SIC targets → No immediate action, continue to monitor
+
+If times exceed targets → Identify which crusher(s) have high truck Wait at Crusher and Dump at Crusher times
+
+Dispatcher Actions:
+1. Maximize the use of Dynamic dispatching to optimize haul truck assignments between crushers.
+2. Minimize the number of trucks required for ore delivery, switch trucks regularly in/out of ore groups to bring times below SIC target.
+3. Ensure truck operators dump in dispatch assigned east/west hopper pads (i.e. 1/2, 3, or 4/5).
+4. If there is a Plant disruption, reallocate trucks immediately to waste.
+5. Divert trucks to stockpiles if space is available. Request approval from GF prior to stockpile use.
+
+STL Actions:
+1. Maintain clean and accessible crusher pockets.
+
+Combined Actions:
+1. Ensure operators support Wenco system accuracy by correctly entering delays, material types, status change from dumping to empty, correct dump locations.` },
+  { id:'waste_dump_p', section:'A.8', title:'Wait and Dump at Waste Dumps Protocol', content:`Monitor SIC software every 1-2 hours (Shovel Trends and SIC Report → Hauling Units)
+
+If Wait at Dump / Dump Times are below SIC targets → No immediate action, continue to monitor
+
+If times exceed targets → Identify which dump(s) have high Wait at Dump and Dump times → Observe several trucks on dump
+
+STL Actions:
+1. Assign an appropriate number of dozers to the dump to keep up with expected production.
+2. Ensure dump and lift sequencing is planned and communicated to the dozer operator to maximize haul truck productivity.
+3. Ensure the dump is maintained well at all times (padded, graded, no ruts, low spots filled, berm height, etc.).
+4. Observe haul truck operators waiting, positioning and reversing to dump. Coach operators during the shift.
+5. Notify Maintenance if certain trucks appear to have slower hoists.
+6. Ensure dozer operators take control of their dump, coaching haul truck operators when required.
+7. Ensure proper lighting is in place.
+
+Dispatcher Actions:
+1. Maximize the use of Dynamic dispatching to optimize haul truck assignments.
+
+Combined Actions:
+1. Redirect trucks to alternate dumps temporarily to allow time for dump maintenance and padding placement.
+2. Assign most skilled dozer operators to the highest priority or most challenging dumps.
+3. Ensure operators are changing status to empty after dumping if Wenco doesn't do so automatically.` },
+  { id:'truck_ready', section:'B.1', title:'Haul Truck Ready Status Codes', content:`Wait At LU: Use when the truck is empty stopped in the loading area, waiting to be spotted by bucket or trucks ahead to clear loading pocket.
+
+Truck Loading: Use when payload is being delivered by the loading unit to the box of the truck.
+
+Hauling: Use when the truck has been fully loaded, left the loading area and is travelling to the dumping destination and dumping is initiated.
+
+Wait At Dump: Use when truck is fully stopped at the dump, waiting to spot to a dozer, dump berm or waiting for the truck ahead to clear the dumping area.
+
+Wait At Hopper: Use when the truck is full stopped at the hopper waiting for the green light to dump or truck ahead to clear the pocket.
+
+Dumping: Use when the truck initiates the box raise at any dumping location (dump, hoppers, inpit, stockpile, etc.).
+
+Empty: Use when truck box is fully lowered and truck is travelling back to a loading unit.` },
+  { id:'truck_delay', section:'B.2', title:'Haul Truck Delay Status Codes', content:`Box Clean: Use when the operator stops to clean/clear the truck box of material buildup (e.g., sticky ore, frozen material).
+Break: Use when the operator takes a scheduled rest break (meal break, bio break) during the shift.
+Cable Move: Use when the truck must stop and wait while a trailing power cable is relocated.
+Change Operator: Use when a replacement operator boards the truck mid-shift.
+Personal: Use when the operator requires a personal stop not covered by a scheduled break.
+Equipment Check - Tire Heat Check: Use when the operator conducts a pre-operational or mid-shift equipment inspection/walkaround.
+Equipment Check: Use when the operator conducts a pre-operational or mid-shift equipment inspection/walkaround.
+Fuel and Lube: Use when the truck stops at fuel and lube station. Covers the full service stop duration.
+Fuel and Lube - Wait for Fuel: Use when the truck has arrived at the fuel bay but must wait because a fuel unit or lube truck is not yet available.
+Shift Change: Use at the end of shift when the truck is parked and the operator is completing shift-end paperwork.
+Hot Change: Use when a shift change occurs while the truck is actively operating — operator is relieved and a new operator takes over without the truck returning to shop.
+Hot Relief: Use when the truck is parked and ready to receive a new operator at the end of the operator's shift, but the relief operator has not yet arrived.
+Downstream: Use when the truck is ready and waiting but cannot proceed because the downstream dump point is full, blocked, or not accepting material.
+Safety/Train: Use when the operator participates in a safety meeting, tailgate session, or receives safety-related training.
+Safety/Train - Coach/Trainer: Use when a coach or trainer is riding with or observing the operator.
+Safety/Train - Documentation: Use when the operator must stop to complete required safety or training documentation.
+Equip Stuck: Use when the haul truck becomes stuck in soft ground, mud, ice, or ruts and requires assistance.
+Weather: Use when operations are suspended due to adverse weather conditions.
+Obstruction: Use when the truck is delayed due to a physical obstruction on the haul road.
+Supervisor: Use when the operator must stop to meet with a supervisor.
+Truck Packing: Use when the operator must stop to properly pack or seat a load before safely tramming.
+No Shovel Assigned: Use when the truck is waiting for a shovel assignment because the assigned shovel is unavailable.
+Equipment Relocation: Use when the truck is tramming to a new loading or dumping location outside its normal cycle route.
+No 2 Way Radio: Use when the truck's two-way radio is not functioning.
+Tire Cooling: Use when the truck must park and wait for its tires to cool down.
+Incident: Use when the truck is involved in or directly affected by a safety incident.
+Engineering: Use when the truck must stop because an engineering crew requires access to the area.
+Scale Study Delays: Use when the truck is intentionally paused as part of a time/motion study.` },
+  { id:'truck_standby', section:'B.3', title:'Haul Truck Standby Status Codes', content:`Standby: DO NOT USE! A sub-status should be used at all times.
+
+CBT/Simulator: Use when the operator is completing computer-based training (CBT) or a simulator session.
+Weather: Use when operations are suspended and the truck is placed on standby due to weather conditions.
+Safety Course: Use when the truck is on standby because the operator is enrolled in a formal safety course.
+Health/Wellness: Use when the operator is unable to operate due to a health or wellness issue.
+Safety Meeting: Use when the truck is on standby because the operator is attending a mandatory safety meeting.
+Firehall: Use when the truck is placed on standby because the operator has been called to report to the firehall.
+Not Required: Use when the truck is placed on standby because it is not required for current production needs — excess fleet capacity.
+No Operator: Use when the truck is ready and mechanically available, but no operator is assigned.
+No Shovel Available: Use when the truck is ready but cannot be dispatched because no shovel is available to load it.
+Release to Ops: Use when the truck is released back to operations from a maintenance hold or special assignment.
+Battle10/Turn Off Truck: Use when the truck has been directed to shut down its engine as part of a Battle 10 or idling reduction initiative.` },
+  { id:'shovel_delay', section:'B.4', title:'Shovel Delay Status Codes', content:`Shovel Move: Use when shovel is making a short shovel move while remaining in the dig face.
+Hot Change: Use when a shift change occurs while the shovel is actively operating.
+Obstruction: Use when the shovel is delayed due to a physical obstruction in the dig face.
+Shift Change: Use at the end of shift when the shovel is parked and the operator is in the shift change process.
+Fuel / Lube: Use when the shovel is getting Fuel and Grease.
+Fuel / Lube Wait Fuel: Use if the shovel cannot continue due to low fuel and no fueling unit is there.
+Equipment Relocation: Use when the shovel is relocating to a completely new area.
+Equipment Check: Use when the operator conducts a pre-operational or mid-shift equipment inspection/walkaround.
+Weather: Use when operations are suspended due to adverse weather conditions.
+Change Operator: Use when a replacement operator boards the shovel to take over from the current operator.
+Equip Stuck: Use when the shovel becomes stuck and requires assistance to free it.
+Personal: Use when the operator requires a personal stop not covered by a scheduled break.
+Hot Relief: Use when the shovel operator is changed out for break.
+Supervisor: Use when the operator must stop to meet with a supervisor.
+Cable Move: Use when the electric shovel needs to move its cable.
+Safety/Train: Use when a coach or trainer is observing the operator.
+Safety/Train Coach/Trainer: Use when a coach or trainer is riding with or observing the operator.
+No 2 Way Radio: Use when the shovel's two-way radio is not functioning.
+Clean Bucket: Use when the bucket is being cleaned on the shovel.
+Box Clean: Use when the shovel is performing a Box Clean on a truck.
+Break: Use when the shovel is stopped for the operator to take a scheduled rest break.
+Downstream: Use when the shovel is ready and waiting but cannot proceed because the downstream dump point is full, blocked, or not accepting material.
+Engineering: Use when the shovel must stop because an engineering crew requires access to the shovel dig face. Sub-statuses: Engineering, Geology, Geotech, Survey.` },
+  { id:'shovel_standby', section:'B.5', title:'Shovel Standby Status Codes', content:`Standby: DO NOT USE! A sub-status should be used at all times.
+
+Not Required: Use when the shovel is available and staffed but has been placed on temporary standby by dispatch or supervisor.
+No Operator: Use when the shovel is available but no operator is available to run it.
+Release to Ops: Use when the shovel was down but has now been called up by maintenance and no operator is yet on the shovel.
+Battle10/Turn Off Shovel: Use when the shovel is available and staffed but has been placed on temporary standby due to a Battle initiative.
+CBT/Simulator: Use when the shovel is available, but the operator has been pulled for CBT simulation or Firehall.
+Firehall: Use when the shovel is available, but the operator has been pulled for Firehall simulation.
+Health/Wellness: Use when the shovel is available, but the operator has left due to being sick or illness.
+Safety Course: Use when the shovel is available, but the operator is attending a safety course.
+Safety Meeting: Use when the shovel is available, but the operator is attending a crew safety meeting.` },
+  { id:'truck_kpi', section:'C.1', title:'Haul Trucks KPI Definitions', content:`Total Hauled (Tonne): Summation of total payloads from all completed haul cycles.
+Availability (%): Percentage of total calendar time trucks are available (not in a down status).
+# Avail Trucks (#): Average number of available trucks rounded down to the nearest truck.
+Use of Availability (%): Percentage of total available time trucks are operating (not in standby status).
+Effective Utilization (%): Percentage of total utilized time trucks are in a production status (not in delay status).
+Productivity (tonnes/NOH): Summation of total payloads from all completed haul cycles divided by total net operating hours (NOH).
+Payload (tonnes): Weight of material hauled per load, measured in tonnes.
+Overloads (Count): Number of loads over 120% nominal payload.
+Underloads (%): Percentage of loads below nominal payload.
+110-120% (%): Percentage of loads between 110 and 120% nominal payload.
+Cycle Time (mm:ss): Average time required for a truck to complete a cycle, beginning when the truck completes the dumping status and goes into empty and ending after the next dump.
+Truck Wait at LU (mm:ss): Average time per cycle truck is waiting to enter spot or load at a loading unit.
+Spot at LU (mm:ss): Average time per cycle truck is preparing their position to be loaded.
+Load Time (mm:ss): Average time per cycle required to load the truck.
+Truck wait at All (mm:ss): Average time per cycle truck spends waiting at all dump locations to dump.
+Truck wait at Dump (mm:ss): Average time per cycle truck spends waiting at waste dump locations.
+Truck wait at Stockpile (mm:ss): Average time per cycle truck spends waiting at stockpile dump locations.
+Truck wait at Crusher (mm:ss): Average time per cycle truck spends waiting at crusher dump locations.
+Dumping (mm:ss): Average time per cycle required to dump the truck for all locations.
+Dump at Dump (mm:ss): Average time per cycle required to dump the truck at waste dump locations.
+Dump at Stockpile (mm:ss): Average time per cycle required to dump the truck at stockpile locations.
+Dump at Crusher (mm:ss): Average time per cycle required to dump the truck at crusher locations.
+Travel Empty (mm:ss): Average time per cycle required to travel empty from dumping location to loading location.
+Travel Full (mm:ss): Average time per cycle required to travel full from loading location to dumping location.
+Stopped Empty (mm:ss): Average time per cycle in an empty status travelling below a threshold speed.
+Stopped Full (mm:ss): Average time per cycle in a loaded status travelling below a threshold speed.
+Delays & Standby: Percentage of utilized time spent in a specific delay status.` },
+  { id:'shovel_kpi', section:'C.2', title:'Shovels KPI Definitions', content:`Total Loaded (Tonne): Summation of total payloads from all loaded cycles.
+Availability (%): Percentage of total calendar time loading unit is available (not in a down status).
+NOH % (%): Percentage of total available time loading unit is operating (not in standby or delay status).
+Effective Utilization (%): Percentage of available time loading unit is in an effective status (loading or spotting).
+Productivity (Tonnes/NOH): Summation of total payloads from all completed haul cycles loaded by loading unit, divided by total net operating hours.
+LU Cycle Time (mm:ss): Average time required to complete a loading unit cycle, beginning when the loading unit first goes into hanging and ending when the load is completed.
+Hang Time (mm:ss): Average time per cycle, in minutes and seconds, that the loading unit is waiting for the truck to arrive.
+Hang Time (%): Percentage of total loading unit cycle time the loading unit is waiting for the truck to arrive.
+Spot Time (mm:ss): Average time per cycle the loading unit is waiting for the truck to spot.
+Load Time (mm:ss): Average time per cycle the loading unit requires to load the truck.
+Payload (wTons): Average payload of all loads by the loading unit, weighted on haulage fleet cycles.
+Overloads (count): Number of loads over 120% nominal payload.
+Underloads (%): Percentage of loads below nominal payload.
+110-120% (%): Percentage of loads between 110 and 120% nominal payload.
+Truck Wait at LU (mm:ss): Average time per cycle truck is waiting to enter spot or load at the loading unit.
+Down Events (count): Number of down events on the loading unit.
+Delay & Standby Events (count): Number of delay and standby events on the loading unit.
+First Bucket (hh:mm): Hour and minute of the start time of the first loading cycle of the shift.
+Last Bucket (hh:mm): Hour and minute of the end time of the last loading cycle of the shift.
+Top Delays & Standbys by LU (hh:mm:ss): Top 7 delay and standby statuses and duration.` },
+  { id:'waste_disp', section:'D.1', title:'Waste Dispatcher Daily Responsibilities', content:`Shift Start:
+1. Assign inactive waste units to the appropriate standby status.
+2. Verify Waste LU equipment editor bench, block, material associations, and dump/stockpile assignments.
+3. Review locks and bars and remove unnecessary restrictions where possible.
+4. Review position and dump playback for the previous operating hour and adjust segments and beacons as required.
+5. Verify MineMap routes in both directions (from/to and to/from).
+6. Verify Waste LU wait areas and ensure polygons include truck queue locations.
+7. Configure Dynamic Dispatch groups based on shared dig locations, shared segments, or shared dump locations.
+8. When operating under- or over-trucked conditions, refer to the Operational Strategies flowcharts.
+9. Before enabling Dynamic Dispatch, ensure participating haul units understand assignment locations, including dump, empty, and full dispatch beacons.
+10. Monitor SIC performance trends to identify emerging issues impacting Waste LUs.
+11. Review planned production moves and operational changes impacting dispatch strategy.
+12. Maximize use of Dynamic Dispatch optimization.
+
+Mid-Shift:
+1. Maximize use of Dynamic Dispatch optimization.
+2. Verify routes and update MineMap configurations whenever material assignments or waste dump assignments change.
+3. If issues are encountered with Dynamic Dispatch, refer to the Troubleshooting Guide.
+4. Monitor SIC performance trends and communicate with pit supervision to address negative performance trends.
+5. Ensure virtual segments remain between 50 m and 250 m using the measuring tool.
+
+Shift End:
+1. Leave the dispatch system properly configured for the oncoming shift.
+2. Disable Dynamic Dispatch where required.
+
+Crossover:
+1. Communicate issues identified within the Wenco Dynamic Dispatch setup to the oncoming Dispatcher.
+2. Communicate strategies attempted during the shift and their outcomes.
+3. Inform the oncoming Dispatcher of any recent operational changes impacting dispatch setup or strategy.` },
+  { id:'ore_disp', section:'D.2', title:'Ore Dispatcher Daily Responsibilities', content:`Shift Start:
+1. Assign inactive ore units to the appropriate standby status.
+2. Verify LU equipment editor bench, block, material associations, and dump/stockpile/hopper assignments for ore shovels.
+3. Review locks and bars and remove unnecessary restrictions where possible.
+4. Review position and dump playback for the previous operating hour and adjust segments and beacons as required.
+5. Verify Ore LU wait areas and ensure polygons include truck queue locations.
+6. Configure Dynamic Dispatch groups based on shared dig locations, shared segments, or shared dump locations.
+7. When operating under- or over-trucked conditions, refer to the Operational Strategies flowcharts.
+8. Before enabling Dynamic Dispatch, ensure participating haul units understand assignment locations.
+9. Monitor SIC performance trends to identify emerging issues before they impact operations.
+10. Review planned production moves and operational changes impacting production planning.
+11. Maximize use of Dynamic Dispatch optimization.
+
+Mid-Shift:
+1. Maximize use of Dynamic Dispatch optimization.
+2. Verify routes and update MineMap configurations whenever material, stockpile, or hopper assignments change.
+3. If issues are encountered with Dynamic Dispatch, refer to the Troubleshooting Guide.
+4. Monitor SIC performance trends and communicate with the Pit Team Lead to address negative trends.
+5. Ensure virtual segments remain between 50 m and 250 m using the measuring tool.
+
+Shift End:
+1. Leave the dispatch system properly configured for the oncoming shift.
+2. Disable Dynamic Dispatch where required.
+
+Handover:
+1. Discuss setup issues and align dispatch practices with the oncoming Dispatcher.
+2. Communicate strategies applied during the shift and their outcomes.
+3. Inform the oncoming Dispatcher of any recent operational changes impacting dispatch setup or strategy.` }
+];
+
+function openPlaybook() {
+  document.getElementById('pbModal').classList.remove('hidden');
+  setTimeout(() => document.getElementById('pbInput').focus(), 50);
+}
+function closePlaybook() {
+  document.getElementById('pbModal').classList.add('hidden');
+}
+function searchPlaybook() {
+  const query = document.getElementById('pbInput').value.trim();
+  const out   = document.getElementById('pbResults');
+  if (!query) {
+    out.innerHTML = '<div class="pb-empty">Type a keyword to search the CNRL Horizon Production Playbook.</div>';
+    return;
+  }
+  const terms = query.toLowerCase().split(/\s+/).filter(Boolean);
+  const hits  = PLAYBOOK_SECTIONS.filter(s => {
+    const txt = (s.section + ' ' + s.title + ' ' + s.content).toLowerCase();
+    return terms.every(w => txt.includes(w));
+  });
+  if (!hits.length) {
+    out.innerHTML = '<div class="pb-empty">No results for <strong>' + pbEsc(query) + '</strong>. Try a different keyword.</div>';
+    return;
+  }
+  out.innerHTML = hits.map((s, i) => `
+    <div class="pb-result" id="pbr${i}" onclick="pbToggle(${i})">
+      <div class="pb-result-hdr">
+        <span class="pb-sec">${pbEsc(s.section)}</span>
+        <span class="pb-result-title">${pbHi(pbEsc(s.title), terms)}</span>
+      </div>
+      <div class="pb-snippet">${pbHi(pbSnip(s.content, terms), terms)}</div>
+      <div class="pb-body">${pbHi(pbEsc(s.content), terms)}</div>
+    </div>`).join('');
+}
+function pbToggle(i) { document.getElementById('pbr' + i).classList.toggle('open'); }
+function pbSnip(txt, terms) {
+  const lo = txt.toLowerCase();
+  let idx = 0;
+  for (const t of terms) { const p = lo.indexOf(t); if (p >= 0) { idx = p; break; } }
+  const s = Math.max(0, idx - 80), e = Math.min(txt.length, idx + 220);
+  return (s > 0 ? '…' : '') + pbEsc(txt.slice(s, e)) + (e < txt.length ? '…' : '');
+}
+function pbHi(html, terms) {
+  return terms.reduce((h, t) => {
+    if (!t) return h;
+    return h.replace(new RegExp(pbErx(pbEsc(t)), 'gi'), '<mark>$&</mark>');
+  }, html);
+}
+function pbEsc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function pbErx(s) { return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'); }
 
 // ── Toast ──────────────────────────────────────────────────────────────────────
 function showToast(msg, isError = false) {
