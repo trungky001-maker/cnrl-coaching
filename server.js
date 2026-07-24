@@ -12,24 +12,18 @@ const db = new Database(DB_PATH);
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS submissions (
-    id                  INTEGER PRIMARY KEY AUTOINCREMENT,
-    created_at          TEXT    NOT NULL DEFAULT (datetime('now','localtime')),
-    date                TEXT    NOT NULL,
-    crew                TEXT    NOT NULL,
-    leader              TEXT    NOT NULL,
-    badge               TEXT    NOT NULL,
-    op_name             TEXT    NOT NULL,
-    kpis                TEXT    NOT NULL,
-    initial_discussion  TEXT    NOT NULL DEFAULT '',
-    follow_up           TEXT    NOT NULL,
-    comments            TEXT    NOT NULL
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    created_at  TEXT    NOT NULL DEFAULT (datetime('now','localtime')),
+    date        TEXT    NOT NULL,
+    crew        TEXT    NOT NULL,
+    leader      TEXT    NOT NULL,
+    badge       TEXT    NOT NULL,
+    op_name     TEXT    NOT NULL,
+    kpis        TEXT    NOT NULL,
+    follow_up   TEXT    NOT NULL,
+    comments    TEXT    NOT NULL
   )
 `);
-
-// Migration: add initial_discussion column to existing databases
-try { db.exec(`ALTER TABLE submissions ADD COLUMN initial_discussion TEXT NOT NULL DEFAULT ''`); } catch {}
-// Migration: rename legacy "Operator Badge #" header (no-op for new installs)
-try { db.exec(`ALTER TABLE submissions ADD COLUMN _migration_guard INTEGER`); } catch {}
 
 // ── Middleware ─────────────────────────────────────────────────────────────────
 app.use(express.json());
@@ -41,7 +35,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.post('/api/submissions', (req, res) => {
   const { date, crew, leader, badge, opName, kpis, followUp, comments } = req.body;
 
-  if (!date || !crew || !leader || !badge || !opName || !kpis?.length || !followUp) {
+  if (!date || !crew || !leader || !badge || !opName || !kpis?.length || !followUp || !comments) {
     return res.status(400).json({ error: 'All fields are required' });
   }
 
@@ -68,8 +62,8 @@ app.get('/api/submissions/export.csv', (_req, res) => {
 
   const headers = [
     'Submission #', 'Timestamp', 'Date of Discussion', 'Crew',
-    'Leader Name', 'SIC Operator ID # on Scorecard', 'Operator Name',
-    'KPIs Discussed', 'Discussion Type', 'Comments',
+    'Leader Name', 'Operator Badge #', 'Operator Name',
+    'KPIs Discussed', 'Follow-up Required', 'Comments',
   ];
 
   const escape = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;

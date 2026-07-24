@@ -318,21 +318,22 @@
   <div class="section">
     <div class="section-header">
       <div class="section-tag">C</div>
-      <div class="section-label">Initial &amp; Follow-up</div>
+      <div class="section-label">Follow-up &amp; Notes</div>
     </div>
     <div class="section-body">
       <div class="field">
-        <label for="followUp">Discussion Type <span class="req">*</span></label>
+        <label for="followUp">Follow-up Required? <span class="req">*</span></label>
         <select id="followUp">
           <option value="">Select</option>
-          <option>Initial</option>
-          <option>Follow-up</option>
+          <option>Yes</option>
+          <option>No</option>
         </select>
-        <div class="error-msg" id="followUpErr">Please select Initial or Follow-up</div>
+        <div class="error-msg" id="followUpErr">Please indicate if follow-up is required</div>
       </div>
       <div class="field">
-        <label for="comments">Comments</label>
+        <label for="comments">Comments <span class="req">*</span></label>
         <textarea id="comments" placeholder="Enter coaching notes, observations, or action items…"></textarea>
+        <div class="error-msg" id="commentsErr">Comments are required</div>
       </div>
     </div>
   </div>
@@ -549,7 +550,8 @@ function validateAll() {
   const kpiTotal = selectedKPIs.size + (otherChecked ? 1 : 0);
   if (kpiTotal === 0) { document.getElementById('kpiErr').classList.add('visible'); ok=false; }
   else                { document.getElementById('kpiErr').classList.remove('visible'); }
-  if (!document.getElementById('followUp').value) { setError('followUp','followUpErr',true); ok=false; } else setError('followUp','followUpErr',false);
+  if (!document.getElementById('followUp').value)          { setError('followUp','followUpErr',true);   ok=false; } else setError('followUp','followUpErr',false);
+  if (!document.getElementById('comments').value.trim())   { setError('comments','commentsErr',true);   ok=false; } else setError('comments','commentsErr',false);
   return ok;
 }
 
@@ -563,6 +565,7 @@ function updateProgress() {
     selectedRole ? 'yes' : '',
     (selectedKPIs.size + (otherChecked ? 1 : 0)) > 0 ? 'yes' : '',
     document.getElementById('followUp').value,
+    document.getElementById('comments').value.trim(),
   ];
   const pct = Math.round((fields.filter(Boolean).length / fields.length) * 100);
   document.getElementById('progressFill').style.width = pct + '%';
@@ -702,7 +705,7 @@ function renderLog(records) {
         <span>SIC ID:</span> ${r.badge} &nbsp;
         <span>Operator:</span> ${r.opName} &nbsp;
         <span>Role:</span> ${roleLabel(r.kpis)} &nbsp;
-        <span>Type:</span> ${r.followUp}
+        <span>Follow-up:</span> ${r.followUp}
       </div>
       <div class="log-kpis"><strong>KPIs (${r.kpis.length}):</strong> ${r.kpis.join(', ')}</div>
       ${r.comments ? `<div class="log-kpis" style="margin-top:4px"><strong>Comments:</strong> ${r.comments}</div>` : ''}
@@ -733,7 +736,7 @@ function sortForExport(records) {
 function exportCSV() {
   const records = sortForExport(filteredRecords());
   if (!records.length) return;
-  const headers = ['Submission #','Timestamp','Date of Discussion','Crew','Leader Name','SIC Operator ID # on Scorecard','Operator Name','KPIs Discussed','Discussion Type','Comments'];
+  const headers = ['Submission #','Timestamp','Date of Discussion','Crew','Leader Name','SIC Operator ID # on Scorecard','Operator Name','KPIs Discussed','Follow-up Required','Comments'];
   const esc = v => `"${String(v ?? '').replace(/"/g,'""')}"`;
   const rows = records.map(r => [r.id, r.timestamp, r.date, r.crew, r.leader, r.badge, r.opName, r.kpis.join('; '), r.followUp, r.comments].map(esc).join(','));
   const csv  = [headers.map(esc).join(','), ...rows].join('\r\n');
