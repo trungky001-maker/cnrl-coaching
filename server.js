@@ -41,7 +41,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.post('/api/submissions', (req, res) => {
   const { date, crew, leader, badge, opName, kpis, followUp, comments } = req.body;
 
-  if (!date || !crew || !leader || !badge || !opName || !kpis?.length || !followUp || !comments) {
+  if (!date || !crew || !leader || !badge || !opName || !kpis?.length || !followUp) {
     return res.status(400).json({ error: 'All fields are required' });
   }
 

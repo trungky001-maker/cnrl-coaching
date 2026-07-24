@@ -331,9 +331,8 @@
         <div class="error-msg" id="followUpErr">Please select Initial or Follow-up</div>
       </div>
       <div class="field">
-        <label for="comments">Comments <span class="req">*</span></label>
+        <label for="comments">Comments</label>
         <textarea id="comments" placeholder="Enter coaching notes, observations, or action items…"></textarea>
-        <div class="error-msg" id="commentsErr">Comments are required</div>
       </div>
     </div>
   </div>
@@ -550,8 +549,7 @@ function validateAll() {
   const kpiTotal = selectedKPIs.size + (otherChecked ? 1 : 0);
   if (kpiTotal === 0) { document.getElementById('kpiErr').classList.add('visible'); ok=false; }
   else                { document.getElementById('kpiErr').classList.remove('visible'); }
-  if (!document.getElementById('followUp').value)          { setError('followUp','followUpErr',true);  ok=false; } else setError('followUp','followUpErr',false);
-  if (!document.getElementById('comments').value.trim())   { setError('comments','commentsErr',true);            ok=false; } else setError('comments','commentsErr',false);
+  if (!document.getElementById('followUp').value) { setError('followUp','followUpErr',true); ok=false; } else setError('followUp','followUpErr',false);
   return ok;
 }
 
@@ -565,7 +563,6 @@ function updateProgress() {
     selectedRole ? 'yes' : '',
     (selectedKPIs.size + (otherChecked ? 1 : 0)) > 0 ? 'yes' : '',
     document.getElementById('followUp').value,
-    document.getElementById('comments').value.trim(),
   ];
   const pct = Math.round((fields.filter(Boolean).length / fields.length) * 100);
   document.getElementById('progressFill').style.width = pct + '%';
