@@ -63,7 +63,7 @@ app.get('/api/submissions/export.csv', (_req, res) => {
   const headers = [
     'Submission #', 'Timestamp', 'Date of Discussion', 'Crew',
     'Leader Name', 'Operator Badge #', 'Operator Name',
-    'KPIs Discussed', 'Follow-up Required', 'Comments',
+    'KPIs Discussed', 'Discussion Type', 'Comments',
   ];
 
   const escape = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
